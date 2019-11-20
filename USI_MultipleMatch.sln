@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29509.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USI_MultipleMatch", "USI_MultipleMatch\USI_MultipleMatch.csproj", "{DB16DA62-4D84-4E3E-86CF-3C74E22533A6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DB16DA62-4D84-4E3E-86CF-3C74E22533A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB16DA62-4D84-4E3E-86CF-3C74E22533A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB16DA62-4D84-4E3E-86CF-3C74E22533A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB16DA62-4D84-4E3E-86CF-3C74E22533A6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {44DF2CC6-B512-4252-BAE3-A9E0122FC7B7}
+	EndGlobalSection
+EndGlobal
