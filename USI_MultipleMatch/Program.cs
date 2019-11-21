@@ -5,17 +5,14 @@ namespace USI_MultipleMatch
     class Program
     {
         static bool alive;
-         static List<(uint byoyomi, uint rounds)> matchlist;
-       static void Main(string[] args)
-        {
+        static List<(uint byoyomi, uint rounds)> matchlist;
+        static void Main(string[] args) {
             alive = true;
             matchlist = new List<(uint byoyomi, uint rounds)>();
             Console.WriteLine("連続対局プログラム");
-            while (alive)
-            {
+            while (alive) {
                 Console.Write("command?(r/m/s/q) > ");
-                switch (Console.ReadLine())
-                {
+                switch (Console.ReadLine()) {
                     case "resister":
                     case "r":
                         resister();
@@ -36,37 +33,42 @@ namespace USI_MultipleMatch
             }
         }
 
-        static void resister()
-        {
+        static void resister() {
+            string p = " ";
+            while (p != "a" && p != "A" && p != "b" && p != "B") {
+                Console.Write("A or B? > ");
+                p = Console.ReadLine();
+            }
 
+            if (p == "a" || p == "A") {
+				
+            }
+            else {
+
+            }
         }
-        static void makematch()
-        {
+        static void makematch() {
             matchlist.Clear();
-            while (true)
-            {
-                Console.WriteLine($"match {matchlist.Count+1}");
+            while (true) {
+                Console.WriteLine($"match {matchlist.Count + 1}");
                 Console.Write("1手の考慮時間?(ミリ秒) > ");
                 uint byo = uint.Parse(Console.ReadLine());
                 Console.Write("対戦回数? > ");
                 uint times = uint.Parse(Console.ReadLine());
                 Console.Write($"add [{byo}ms,{times}回]?(y/n) > ");
-                if(Console.ReadLine()=="y")
+                if (Console.ReadLine() == "y")
                     matchlist.Add((byo, times));
                 Console.Write("current matchlist is ");
                 if (matchlist.Count == 0) Console.Write("empty.");
-                foreach(var match in matchlist)
-                {
+                foreach (var match in matchlist) {
                     Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
                 }
                 Console.WriteLine(".");
                 Console.Write("continue?(y/n) > ");
-                if (Console.ReadLine()!="y")
-                {
+                if (Console.ReadLine() != "y") {
                     Console.WriteLine("resisterd.");
                     Console.Write("matchlist is ");
-                    foreach (var match in matchlist)
-                    {
+                    foreach (var match in matchlist) {
                         Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
                     }
                     Console.WriteLine(".");
@@ -74,11 +76,10 @@ namespace USI_MultipleMatch
                 }
             }
         }
-        static void start()
-        {
+        static void start() {
 
         }
     }
 
-    
+
 }
