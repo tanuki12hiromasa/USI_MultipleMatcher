@@ -37,7 +37,27 @@ namespace USI_MultipleMatch
         static List<(uint byoyomi, uint rounds)> matchlist;
         static void makematch()
         {
+            while (true)
+            {
+                Console.WriteLine($"match {matchlist.Count+1}");
+                Console.Write("byoyomi?(millisecond) > ");
+                uint byo = uint.Parse(Console.ReadLine());
+                Console.Write("rounds?(times) > ");
+                uint times = uint.Parse(Console.ReadLine());
+                matchlist.Add((byo, times));
 
+                Console.Write("current matchlist is ");
+                foreach(var match in matchlist)
+                {
+                    Console.Write($"[{match.byoyomi}ms,{match.rounds}rounds] ");
+                }
+                Console.Write("add match?(y/n) > ");
+                if (Console.ReadLine()!="y")
+                {
+                    Console.WriteLine("resisterd.");
+                    break;
+                }
+            }
         }
         static void start()
         {
