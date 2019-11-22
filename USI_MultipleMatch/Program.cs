@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 namespace USI_MultipleMatch
 {
     class Program
@@ -39,27 +40,54 @@ namespace USI_MultipleMatch
                 Console.Write("A or B? > ");
                 p = Console.ReadLine();
             }
-
+			StreamWriter writer;
             if (p == "a" || p == "A") {
-				
+				writer = new StreamWriter(@"./PlayerA.txt", false);
             }
             else {
-
-            }
+				writer = new StreamWriter(@"./PlayerB.txt", false);
+			}
+			while (true)
+			{
+				Console.Write("input resisterd usi engine's path > ");
+				string path = Console.ReadLine();
+				//pathからエンジンを起動してusiコマンドを受け付けるかチェック
+				if (true)//usiコマンドを受け付けた
+				{
+					//optionを読み取ってテキストに出力
+					return;
+				}
+			}
         }
         static void makematch() {
-            matchlist.Clear();
+			if (matchlist.Count != 0) {
+				Console.Write("matchlist ");
+				foreach (var match in matchlist) {
+					Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
+				}
+				Console.WriteLine("");
+				Console.WriteLine("is exist. Do you want to delete this matchlist sure?");
+				Console.Write("(y/n) > ");
+				if (Console.ReadLine() == "y") {
+					matchlist.Clear();
+					Console.WriteLine("matchlist deleted.");
+				}
+				else {
+					Console.WriteLine("cancelled.");
+					return;
+				}
+			}
             while (true) {
                 Console.WriteLine($"match {matchlist.Count + 1}");
                 Console.Write("1手の考慮時間?(ミリ秒) > ");
                 uint byo = uint.Parse(Console.ReadLine());
                 Console.Write("対戦回数? > ");
                 uint times = uint.Parse(Console.ReadLine());
-                Console.Write($"add [{byo}ms,{times}回]?(y/n) > ");
+                Console.Write($"add [{byo}ms,{times}]?(y/n) > ");
                 if (Console.ReadLine() == "y")
                     matchlist.Add((byo, times));
                 Console.Write("current matchlist is ");
-                if (matchlist.Count == 0) Console.Write("empty.");
+                if (matchlist.Count == 0) Console.Write("empty");
                 foreach (var match in matchlist) {
                     Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
                 }
@@ -77,7 +105,7 @@ namespace USI_MultipleMatch
             }
         }
         static void start() {
-
+			//A,Bから
         }
     }
 
