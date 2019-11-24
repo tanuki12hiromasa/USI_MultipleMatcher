@@ -116,7 +116,7 @@ namespace USI_MultipleMatch
                 uint byo = uint.Parse(Console.ReadLine());
                 Console.Write("対戦回数? > ");
                 uint times = uint.Parse(Console.ReadLine());
-                Console.Write($"add [{byo}ms,{times}]?(y/n) > ");
+                Console.Write($"ok?(y/n) > ");
                 if (Console.ReadLine() == "y")
                     matchlist.Add((byo, times));
                 Console.Write("current matchlist is ");
@@ -146,13 +146,13 @@ namespace USI_MultipleMatch
 			var a_option = new List<string>();
 			var b_option = new List<string>();
 			try {
-				using (StreamReader readerA = new StreamReader(@"./ PlayerA.txt")) {
+				using (StreamReader readerA = new StreamReader(@"./PlayerA.txt")) {
 					Console.WriteLine($"playerA: {readerA.ReadLine()}");
 					a_path = readerA.ReadLine();
 					Console.WriteLine(a_path);
 					for (string sline = readerA.ReadLine(); sline != null && sline != ""; sline = readerA.ReadLine()) {
 						a_option.Add(setoptionusi(sline));
-						Console.WriteLine(a_option.Count - 1);
+						Console.WriteLine(a_option[a_option.Count - 1]);
 					}
 				}
 			}
@@ -162,13 +162,13 @@ namespace USI_MultipleMatch
 				return;
 			}
 			try {
-				using (StreamReader readerB = new StreamReader(@"./ PlayerB.txt")) {
+				using (StreamReader readerB = new StreamReader(@"./PlayerB.txt")) {
 					Console.WriteLine($"playerB: {readerB.ReadLine()}");
 					b_path = readerB.ReadLine();
 					Console.WriteLine(b_path);
 					for (string sline = readerB.ReadLine(); sline != null && sline != ""; sline = readerB.ReadLine()) {
-						a_option.Add(setoptionusi(sline));
-						Console.WriteLine(b_option.Count - 1);
+						b_option.Add(setoptionusi(sline));
+						Console.WriteLine(b_option[b_option.Count - 1]);
 					}
 				}
 			}
@@ -183,7 +183,7 @@ namespace USI_MultipleMatch
 			//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
 			foreach(var m in matchlist) {
 				for(uint r = 1; r <= m.rounds; r++) {
-					if (r % 2 == 0) {
+					if (r % 2 != 0) {
 						//a先手
 						string matchname = $"{expname} {m.byoyomi} {r} a";
 						match(matchname, m.byoyomi, a_path, a_option, b_path, b_option);
@@ -208,6 +208,7 @@ namespace USI_MultipleMatch
 				
 
 			}
+			Console.WriteLine();
 			return Result.Draw;
 		}
 
