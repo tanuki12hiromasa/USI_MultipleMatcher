@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
+using System.Text;
 namespace USI_MultipleMatch
 {
     class Program
@@ -220,10 +221,48 @@ namespace USI_MultipleMatch
 		}
 		static Result match(string matchName, uint byoyomi, string s_path, List<string> s_option, string g_path, List<string> g_option) {
 			Console.Write(matchName);
+			using (var kifuwriter=new StreamWriter(@"./kifu.txt",true))
 			using (Process sente = new Process())
 			using (Process gote = new Process()) {
-				
+				//先手起動
+				sente.StartInfo.UseShellExecute = false;
+				sente.StartInfo.RedirectStandardOutput = true;
+				sente.StartInfo.RedirectStandardInput = true;
+				sente.StartInfo.FileName = s_path;
+				sente.Start();
+				sente.StandardInput.WriteLine("usi");
+				while (true) { if (sente.StandardOutput.ReadLine() == "usiok") break; }
+				foreach (string usi in s_option) sente.StandardInput.WriteLine(usi);
+				sente.StandardInput.WriteLine("isready");
+				//後手起動
+				gote.StartInfo.UseShellExecute = false;
+				gote.StartInfo.RedirectStandardOutput = true;
+				gote.StartInfo.RedirectStandardInput = true;
+				gote.StartInfo.FileName = g_path;
+				gote.Start();
+				gote.StandardInput.WriteLine("usi");
+				while (true) { if (gote.StandardOutput.ReadLine() == "usiok") break; }
+				foreach (string usi in g_option) gote.StandardInput.WriteLine(usi);
+				gote.StandardInput.WriteLine("isready");
+				//usinewgame
+				while (true) { if (sente.StandardOutput.ReadLine() == "readyok") break; }
+				while (true) { if (gote.StandardOutput.ReadLine() == "readyok") break; }
+				sente.StandardInput.WriteLine("usinewgame");
+				gote.StandardInput.WriteLine("usinewgame");
+				//初手はmovesが無いので特殊処理
+				var position = new StringBuilder("position startpos");
+				string go = $"go btime 0 wtime 0 byoyomi {byoyomi}";
+				List<int> evals = new List<int>();
+				sente.StandardInput.WriteLine(position.ToString());
+				sente.StandardInput.WriteLine(go);
+				while (true) {
+					
+					break;
+				}
 
+				position.Append(" moves");
+
+				//
 			}
 			Console.WriteLine();
 			return Result.Draw;
