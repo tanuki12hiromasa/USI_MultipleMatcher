@@ -5,52 +5,53 @@ using System.Diagnostics;
 using System.Text;
 namespace USI_MultipleMatch
 {
-    class Program
-    {
+	class Program
+	{
 		enum Result
 		{
-			SenteWin,GoteWin,Draw
+			SenteWin, GoteWin, Draw
 		}
-        static bool alive;
-        static List<(uint byoyomi, uint rounds)> matchlist;
-        static void Main(string[] args) {
-            alive = true;
-            matchlist = new List<(uint byoyomi, uint rounds)>();
-            Console.WriteLine("連続対局プログラム");
-            while (alive) {
-                Console.Write("command?(r/m/s/q) > ");
-                switch (Console.ReadLine()) {
-                    case "register":
-                    case "r":
-                        register();
-                        break;
-                    case "makematch":
-                    case "m":
-                        makematch();
-                        break;
-                    case "start":
-                    case "s":
-                        start();
-                        break;
-                    case "quit":
-                    case "q":
-                        alive = false;
-                        break;
-                }
-            }
-        }
+		static bool alive;
+		static List<(uint byoyomi, uint rounds)> matchlist;
+		static uint drawMoves = 400;
+		static void Main(string[] args) {
+			alive = true;
+			matchlist = new List<(uint byoyomi, uint rounds)>();
+			Console.WriteLine("連続対局プログラム");
+			while (alive) {
+				Console.Write("command?(r/m/s/q) > ");
+				switch (Console.ReadLine()) {
+					case "register":
+					case "r":
+						register();
+						break;
+					case "makematch":
+					case "m":
+						makematch();
+						break;
+					case "start":
+					case "s":
+						start();
+						break;
+					case "quit":
+					case "q":
+						alive = false;
+						break;
+				}
+			}
+		}
 
-        static void register() {
-            string p = " ";
-            while (p != "a" && p != "A" && p != "b" && p != "B") {
-                Console.Write("A or B? > ");
-                p = Console.ReadLine();
-            }
+		static void register() {
+			string p = " ";
+			while (p != "a" && p != "A" && p != "b" && p != "B") {
+				Console.Write("A or B? > ");
+				p = Console.ReadLine();
+			}
 			StreamWriter writer;
-            if (p == "a" || p == "A") {
+			if (p == "a" || p == "A") {
 				writer = new StreamWriter(@"./PlayerA.txt", false);
-            }
-            else {
+			}
+			else {
 				writer = new StreamWriter(@"./PlayerB.txt", false);
 			}
 			while (true) {
@@ -92,8 +93,8 @@ namespace USI_MultipleMatch
 					Console.WriteLine(e.Message);
 				}
 			}
-        }
-        static void makematch() {
+		}
+		static void makematch() {
 			if (matchlist.Count != 0) {
 				Console.Write("matchlist ");
 				foreach (var match in matchlist) {
@@ -111,33 +112,33 @@ namespace USI_MultipleMatch
 					return;
 				}
 			}
-            while (true) {
-                Console.WriteLine($"match {matchlist.Count + 1}");
-                Console.Write("1手の考慮時間?(ミリ秒) > ");
-                uint byo = uint.Parse(Console.ReadLine());
-                Console.Write("対戦回数? > ");
-                uint times = uint.Parse(Console.ReadLine());
-                Console.Write($"ok?(y/n) > ");
-                if (Console.ReadLine() == "y")
-                    matchlist.Add((byo, times));
-                Console.Write("current matchlist is ");
-                if (matchlist.Count == 0) Console.Write("empty");
-                foreach (var match in matchlist) {
-                    Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
-                }
-                Console.WriteLine(".");
-                Console.Write("continue?(y/n) > ");
-                if (Console.ReadLine() != "y") {
-                    Console.Write("matchlist ");
-                    foreach (var match in matchlist) {
-                        Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
-                    }
-                    Console.WriteLine("is registered.");
-                    break;
-                }
-            }
-        }
-        static void start() {
+			while (true) {
+				Console.WriteLine($"match {matchlist.Count + 1}");
+				Console.Write("1手の考慮時間?(ミリ秒) > ");
+				uint byo = uint.Parse(Console.ReadLine());
+				Console.Write("対戦回数? > ");
+				uint times = uint.Parse(Console.ReadLine());
+				Console.Write($"ok?(y/n) > ");
+				if (Console.ReadLine() == "y")
+					matchlist.Add((byo, times));
+				Console.Write("current matchlist is ");
+				if (matchlist.Count == 0) Console.Write("empty");
+				foreach (var match in matchlist) {
+					Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
+				}
+				Console.WriteLine(".");
+				Console.Write("continue?(y/n) > ");
+				if (Console.ReadLine() != "y") {
+					Console.Write("matchlist ");
+					foreach (var match in matchlist) {
+						Console.Write($"[{match.byoyomi}ms,{match.rounds}回] ");
+					}
+					Console.WriteLine("is registered.");
+					break;
+				}
+			}
+		}
+		static void start() {
 			if (matchlist.Count <= 0) {
 				Console.WriteLine("error: matchlist not exist");
 				return;
@@ -187,7 +188,7 @@ namespace USI_MultipleMatch
 			using (var resultwriter = new StreamWriter(@"./result.txt", true)) {
 				//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
 				foreach (var m in matchlist) {
-					uint[] results = new uint[3] { 0 , 0, 0 };
+					uint[] results = new uint[3] { 0, 0, 0 };
 					for (uint r = 1; r <= m.rounds; r++) {
 						if (r % 2 != 0) {
 							//a先手
@@ -221,7 +222,6 @@ namespace USI_MultipleMatch
 		}
 		static Result match(string matchName, uint byoyomi, string s_path, List<string> s_option, string g_path, List<string> g_option) {
 			Console.Write(matchName);
-			using (var kifuwriter=new StreamWriter(@"./kifu.txt",true))
 			using (Process sente = new Process())
 			using (Process gote = new Process()) {
 				//先手起動
@@ -251,24 +251,106 @@ namespace USI_MultipleMatch
 				gote.StandardInput.WriteLine("usinewgame");
 				//初手はmovesが無いので特殊処理
 				var position = new StringBuilder("position startpos");
+				List<string> kifu = new List<string>();
+				List<string> evals = new List<string>();
 				string go = $"go btime 0 wtime 0 byoyomi {byoyomi}";
-				List<int> evals = new List<int>();
-				sente.StandardInput.WriteLine(position.ToString());
-				sente.StandardInput.WriteLine(go);
-				while (true) {
-					
-					break;
+				List<Kyokumen> history = new List<Kyokumen> { new Kyokumen() };
+				{
+					var (move, eval) = GetMove(sente, position.ToString(), go);
+					kifu.Add(move);
+					evals.Add(eval);
+					history.Add(new Kyokumen(history[history.Count - 1], move));
+					position.Append(" moves ").Append(move);
 				}
-
-				position.Append(" moves");
-
-				//
+				while (true) {
+					{//後手
+						var (move, eval) = GetMove(gote, position.ToString(), go);
+						kifu.Add(move);
+						evals.Add(eval);
+						if (move=="resign") {
+							FoutKifu(matchName, kifu, evals);
+							Console.WriteLine();
+							return Result.SenteWin;
+						}
+						else if(move == "win") {
+							FoutKifu(matchName, kifu, evals);
+							Console.WriteLine();
+							return Result.GoteWin;
+						}
+						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
+						if (CheckRepetition(nextKyokumen, history) && CheckEndless(history.Count)) {
+							FoutKifu(matchName, kifu, evals);
+							Console.WriteLine();
+							return Result.Draw;
+						}
+						history.Add(nextKyokumen);
+						position.Append(" ").Append(move);
+					}
+					{//先手
+						var (move, eval) = GetMove(sente, position.ToString(), go);
+						kifu.Add(move);
+						evals.Add(eval);
+						if (move == "resign") {
+							FoutKifu(matchName, kifu, evals);
+							Console.WriteLine();
+							return Result.GoteWin;
+						}
+						else if (move == "win") {
+							FoutKifu(matchName, kifu, evals);
+							Console.WriteLine();
+							return Result.SenteWin;
+						}
+						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
+						if (CheckRepetition(nextKyokumen, history) && CheckEndless(history.Count)) {
+							FoutKifu(matchName, kifu, evals);
+							Console.WriteLine();
+							return Result.Draw;
+						}
+						history.Add(nextKyokumen);
+						position.Append(" ").Append(move);
+					}
+				}
 			}
-			Console.WriteLine();
-			return Result.Draw;
 		}
-
-    }
-
-
+		static (string move, string eval) GetMove(Process player, string position, string gobyoyomi) {
+			string eval = "0";
+			player.StandardInput.WriteLine(position);
+			player.StandardInput.WriteLine(gobyoyomi);
+			while (true) {
+				string[] usi = player.StandardOutput.ReadLine().Split(' ');
+				if (usi[0] == "info") {
+					for(int i = 1; i < usi.Length - 1; i++) {
+						if (usi[i] == "cp") {
+							eval = usi[i + 1];
+						}
+					}
+				}
+				else if (usi[0] == "bestmove") {
+					return (usi[1], eval);
+				}
+			}
+		}
+		static bool CheckRepetition(Kyokumen kyokumen, List<Kyokumen> history) {
+			int count = 0;
+			foreach(Kyokumen his in history) {
+				if (kyokumen == his) {
+					count++;
+				}
+			}
+			return count >= 3;
+		}
+		static bool CheckEndless(int moves) {
+			return moves > drawMoves;
+		}
+		static void FoutKifu(string matchName, List<string> kifu, List<string> evals) {
+			using (var kifuwriter = new StreamWriter(@"./kifu.txt", true)) {
+				kifuwriter.Write(matchName);
+				foreach (string move in kifu) kifuwriter.Write(move + " ");
+				kifuwriter.WriteLine();
+				kifuwriter.Write(matchName);
+				foreach (string eval in evals) kifuwriter.Write(eval + " ");
+				kifuwriter.WriteLine();
+			}
+		}
+	}
 }
