@@ -143,11 +143,13 @@ namespace USI_MultipleMatch
 			}
 			//A,Bの設定を読み込む
 			string a_path, b_path;
+			string a_name, b_name;
 			var a_option = new List<string>();
 			var b_option = new List<string>();
 			try {
 				using (StreamReader readerA = new StreamReader(@"./PlayerA.txt")) {
-					Console.WriteLine($"playerA: {readerA.ReadLine()}");
+					a_name = readerA.ReadLine();
+					Console.WriteLine($"playerA: {a_name}");
 					a_path = readerA.ReadLine();
 					Console.WriteLine(a_path);
 					for (string sline = readerA.ReadLine(); sline != null && sline != ""; sline = readerA.ReadLine()) {
@@ -163,7 +165,8 @@ namespace USI_MultipleMatch
 			}
 			try {
 				using (StreamReader readerB = new StreamReader(@"./PlayerB.txt")) {
-					Console.WriteLine($"playerB: {readerB.ReadLine()}");
+					b_name = readerB.ReadLine();
+					Console.WriteLine($"playerB: {b_name}");
 					b_path = readerB.ReadLine();
 					Console.WriteLine(b_path);
 					for (string sline = readerB.ReadLine(); sline != null && sline != ""; sline = readerB.ReadLine()) {
@@ -180,29 +183,43 @@ namespace USI_MultipleMatch
 			//
 			Console.Write("experiment name? > ");
 			string expname = DateTime.Now.ToString("yyMMddHHmm") + ' ' + Console.ReadLine();
-			//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
-			foreach(var m in matchlist) {
-				for(uint r = 1; r <= m.rounds; r++) {
-					if (r % 2 != 0) {
-						//a先手
-						string matchname = $"{expname} {m.byoyomi} {r} a";
-						match(matchname, m.byoyomi, a_path, a_option, b_path, b_option);
+			using (var resultwriter = new StreamWriter(@"./result.txt", true)) {
+				//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
+				foreach (var m in matchlist) {
+					uint[] results = new uint[3] { 0 , 0, 0 };
+					for (uint r = 1; r <= m.rounds; r++) {
+						if (r % 2 != 0) {
+							//a先手
+							string matchname = $"{expname} {m.byoyomi} {r} a ";
+							var result = match(matchname, m.byoyomi, a_path, a_option, b_path, b_option);
+							switch (result) {
+								case Result.SenteWin: results[0]++; break;
+								case Result.GoteWin: results[1]++; break;
+								case Result.Draw: results[2]++; break;
+							}
+						}
+						else {
+							//b先手
+							string matchname = $"{expname} {m.byoyomi} {r} b ";
+							var result = match(matchname, m.byoyomi, b_path, b_option, a_path, a_option);
+							switch (result) {
+								case Result.SenteWin: results[1]++; break;
+								case Result.GoteWin: results[0]++; break;
+								case Result.Draw: results[2]++; break;
+							}
+						}
 					}
-					else {
-						//b先手
-						string matchname = $"{expname} {m.byoyomi} {r} b";
-						match(matchname, m.byoyomi, b_path, b_option, a_path, a_option);
-					}
+					resultwriter.WriteLine($"{expname} {m.byoyomi}ms: {results[0]}-{results[1]}-{results[2]} ({a_name} vs {b_name})");
 				}
 			}
-
+			alive = false;
 		}
 		static string setoptionusi(string settingline) {
 			var token = settingline.Split(' ');
 			return $"setoption name {token[0]} value {token[2]}";
 		}
 		static Result match(string matchName, uint byoyomi, string s_path, List<string> s_option, string g_path, List<string> g_option) {
-			Console.Write($"{matchName} ");
+			Console.Write(matchName);
 			using (Process sente = new Process())
 			using (Process gote = new Process()) {
 				
