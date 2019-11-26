@@ -226,7 +226,6 @@ namespace USI_MultipleMatch
 			return $"setoption name {token[0]} value {token[2]}";
 		}
 		static Result match(string matchName, uint byoyomi, string s_path, List<string> s_option, string g_path, List<string> g_option) {
-			Console.Write(matchName);
 			using (Process sente = new Process())
 			using (Process gote = new Process()) {
 				//先手起動
@@ -256,6 +255,7 @@ namespace USI_MultipleMatch
 				//usinewgame
 				sente.StandardInput.WriteLine("usinewgame");
 				gote.StandardInput.WriteLine("usinewgame");
+				Console.Write(matchName);
 				//初手はmovesが無いので特殊処理
 				var position = new StringBuilder("position startpos");
 				List<string> kifu = new List<string>();
@@ -359,10 +359,12 @@ namespace USI_MultipleMatch
 		static (string move, int eval) GetMove(Process player, string position, string gobyoyomi) {
 			int eval = 0;
 			player.StandardInput.WriteLine(position);
+			System.Threading.Tasks.Task.Delay(1).Wait();
 			player.StandardInput.WriteLine(gobyoyomi);
 			while (true) {
 				string[] usi = player.StandardOutput.ReadLine().Split(' ');
-				if (usi[0] == "info") {
+				if (usi == null || usi.Length == 0) { continue; }
+				else if (usi[0] == "info") {
 					for(int i = 1; i < usi.Length - 1; i++) {
 						if (usi[i] == "cp") {
 							eval = int.Parse(usi[i + 1]);
