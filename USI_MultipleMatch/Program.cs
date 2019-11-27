@@ -191,27 +191,39 @@ namespace USI_MultipleMatch
 				foreach (var m in matchlist) {
 					uint[] results = new uint[4] { 0, 0, 0, 0 };
 					for (uint r = 1; r <= m.rounds; r++) {
-						if (r % 2 != 0) {
-							//a先手
-							string matchname = $"{expname} {m.byoyomi}ms {r}(A): ";
-							var result = match(matchname, m.byoyomi, a_path, a_option, b_path, b_option);
-							switch (result) {
-								case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-								case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
+						try
+						{
+							if (r % 2 != 0)
+							{
+								//a先手
+								string matchname = $"{expname} {m.byoyomi}ms {r}(A): ";
+								var result = match(matchname, m.byoyomi, a_path, a_option, b_path, b_option);
+								switch (result)
+								{
+									case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+									case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+									case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+									case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
+								}
+							}
+							else
+							{
+								//b先手
+								string matchname = $"{expname} {m.byoyomi}ms {r}(B): ";
+								var result = match(matchname, m.byoyomi, b_path, b_option, a_path, a_option);
+								switch (result)
+								{
+									case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+									case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+									case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+									case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
+								}
 							}
 						}
-						else {
-							//b先手
-							string matchname = $"{expname} {m.byoyomi}ms {r}(B): ";
-							var result = match(matchname, m.byoyomi, b_path, b_option, a_path, a_option);
-							switch (result) {
-								case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-								case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
-							}
+						catch(System.IO.IOException e)
+						{
+							Console.WriteLine(e.Message);
+							r--;
 						}
 					}
 					string matchResult = $"{expname} {m.byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({a_name} vs {b_name})";
@@ -362,6 +374,7 @@ namespace USI_MultipleMatch
 			System.Threading.Tasks.Task.Delay(1).Wait();
 			player.StandardInput.WriteLine(gobyoyomi);
 			while (true) {
+				if (player.HasExited) throw new System.IO.IOException("usi engine has crashed");
 				string[] usi = player.StandardOutput.ReadLine().Split(' ');
 				if (usi == null || usi.Length == 0) { continue; }
 				else if (usi[0] == "info") {
