@@ -19,7 +19,7 @@ namespace USI_MultipleMatch
 			matchlist = new List<(uint byoyomi, uint rounds)>();
 			Console.WriteLine("連続対局プログラム");
 			while (alive) {
-				Console.Write("command?(r/m/s/q) > ");
+				Console.Write("command?(r/m/s/k/q) > ");
 				switch (Console.ReadLine()) {
 					case "register":
 					case "r":
@@ -33,12 +33,17 @@ namespace USI_MultipleMatch
 					case "s":
 						start();
 						break;
+					case "kifutocsa":
+					case "k":
+						Kifu.KifulineToCSA();
+						break;
 					case "quit":
 					case "q":
 						alive = false;
 						break;
 				}
 			}
+			Console.WriteLine("Program finished.");
 		}
 
 		static void register() {
