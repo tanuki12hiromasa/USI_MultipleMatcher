@@ -190,11 +190,10 @@ namespace USI_MultipleMatch
 			}
 			//
 			string exptitle = null;
-			while (exptitle != null) {
+			while (exptitle == null) {
 				Console.Write("experiment name? > ");
 				string[] sl = Console.ReadLine().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-				if (sl.Length > 0)
-				{
+				if (sl.Length > 0){
 					exptitle = sl[0];
 				}
 			}
@@ -302,7 +301,7 @@ namespace USI_MultipleMatch
 						evals.Add(-eval);
 						Console.Write($" w:{move}({-eval})");
 						if (move=="resign") {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.SenteWin);
 							gote.StandardInput.WriteLine("gameover lose");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover win");
@@ -310,7 +309,7 @@ namespace USI_MultipleMatch
 							return Result.SenteWin;
 						}
 						else if(move == "win") {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.GoteWin);
 							gote.StandardInput.WriteLine("gameover win");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover lose");
@@ -319,7 +318,7 @@ namespace USI_MultipleMatch
 						}
 						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
 						if (CheckRepetition(nextKyokumen, history)) {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.Repetition);
 							gote.StandardInput.WriteLine("gameover draw");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover draw");
@@ -327,7 +326,7 @@ namespace USI_MultipleMatch
 							return Result.Repetition;
 						}
 						if (CheckEndless(history.Count)) {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.Draw);
 							gote.StandardInput.WriteLine("gameover draw");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover draw");
@@ -343,7 +342,7 @@ namespace USI_MultipleMatch
 						evals.Add(eval);
 						Console.Write($" b:{move}({eval})");
 						if (move == "resign") {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.GoteWin);
 							sente.StandardInput.WriteLine("gameover lose");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover win");
@@ -351,7 +350,7 @@ namespace USI_MultipleMatch
 							return Result.GoteWin;
 						}
 						else if (move == "win") {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.SenteWin);
 							sente.StandardInput.WriteLine("gameover win");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover lose");
@@ -360,7 +359,7 @@ namespace USI_MultipleMatch
 						}
 						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
 						if (CheckRepetition(nextKyokumen, history)) {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.Repetition);
 							sente.StandardInput.WriteLine("gameover draw");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover draw");
@@ -368,7 +367,7 @@ namespace USI_MultipleMatch
 							return Result.Repetition;
 						}
 						if (CheckEndless(history.Count)) {
-							FoutKifu(matchName, kifu, evals);
+							FoutKifu(matchName, kifu, evals, Result.Draw);
 							sente.StandardInput.WriteLine("gameover draw");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover draw");
@@ -394,6 +393,17 @@ namespace USI_MultipleMatch
 					for(int i = 1; i < usi.Length - 1; i++) {
 						if (usi[i] == "cp") {
 							eval = int.Parse(usi[i + 1]);
+							break;
+						}
+						else if (usi[i] == "mate") {
+							if (usi[i + 1] == "+") eval = 90000;
+							else if (usi[i + 1] == "-") eval = -90000;
+							else {
+								int mate = int.Parse(usi[i + 1]);
+								if (mate >= 0) eval = 100000 - mate;
+								else eval = -100000 - mate;
+							}
+							break;
 						}
 					}
 				}
@@ -414,11 +424,17 @@ namespace USI_MultipleMatch
 		static bool CheckEndless(int moves) {
 			return moves > drawMoves;
 		}
-		static void FoutKifu(string matchName, List<string> kifu, List<int> evals) {
+		static void FoutKifu(string matchName, List<string> kifu, List<int> evals, Result result) {
 			using (var kifuwriter = new StreamWriter(@"./kifu.txt", true)) {
 				kifuwriter.Write(matchName);
 				foreach (var move in kifu) kifuwriter.Write(move + " ");
 				kifuwriter.WriteLine();
+				switch (result) {
+					case Result.SenteWin: kifuwriter.Write("SenteWin ");break;
+					case Result.GoteWin: kifuwriter.Write("GoteWin ");break;
+					case Result.Repetition: kifuwriter.Write("Sennichite ");break;
+					case Result.Draw: kifuwriter.Write("Over400moves ");break;
+				}
 				kifuwriter.Write("eval: ");
 				foreach (var eval in evals) kifuwriter.Write(eval + " ");
 				kifuwriter.WriteLine();
