@@ -44,6 +44,9 @@ namespace USI_MultipleMatch
 			Array.Copy(kyokumen.bammen, bammen, kyokumen.bammen.Length);
 			Array.Copy(kyokumen.s_mochi, s_mochi, kyokumen.s_mochi.Length);
 			Array.Copy(kyokumen.g_mochi, g_mochi, kyokumen.g_mochi.Length);
+			proceed(usimove);
+		}
+		public void proceed(string usimove) {
 			var to = usitovec(usimove[2], usimove[3]);
 			if (usimove[1] != '*') {
 				//移動
@@ -51,11 +54,11 @@ namespace USI_MultipleMatch
 				if (bammen[to.x, to.y] != Koma.None) {
 					Koma m = bammen[to.x, to.y];
 					if (teban) s_mochi[komatomochi(m)]++;
-					else g_mochi[komatomochi(m)]++;					
+					else g_mochi[komatomochi(m)]++;
 				}
-				if (usimove.Length > 4 && usimove[4] == '+') 
+				if (usimove.Length > 4 && usimove[4] == '+')
 					bammen[to.x, to.y] = prom(bammen[from.x, from.y]);
-				else 
+				else
 					bammen[to.x, to.y] = bammen[from.x, from.y];
 				bammen[from.x, from.y] = Koma.None;
 			}
@@ -138,6 +141,49 @@ namespace USI_MultipleMatch
 					_ => Koma.None
 				};
 			}
+		}
+		public static string usimove_to_csamove(string usi,Kyokumen resultkyokumen) {
+			StringBuilder sb = new StringBuilder();
+			if (!resultkyokumen.teban) {
+				sb.Append('+');
+			} 
+			else {
+				sb.Append('-');
+			}
+			if (usi[1] == '*') {
+				sb.Append("00");
+			}
+			else {
+				sb.Append(usi[0]);
+				sb.Append((usi[1] - 'a' + 1).ToString());
+			}
+			int tox = usi[2] - '1';
+			int toy = usi[3] - 'a';
+			sb.Append(usi[2]);
+			sb.Append((toy + 1).ToString());
+			sb.Append(KomaToCsa(resultkyokumen.bammen[tox, toy]));
+			return sb.ToString();
+		}
+		static string KomaToCsa(Koma k) {
+			if ((int)k >= (int)Koma.g_Fu) k = (Koma)((int)k - (int)Koma.Sengo);
+			return k switch
+			{
+				Koma.s_Fu => "FU",
+				Koma.s_Kyou => "KY",
+				Koma.s_Kei => "KE",
+				Koma.s_Gin => "GI",
+				Koma.s_Kin => "KI",
+				Koma.s_Kaku => "KA",
+				Koma.s_Hi => "HI",
+				Koma.s_Ou => "OU",
+				Koma.s_nFu => "TO",
+				Koma.s_nKyou => "NY",
+				Koma.s_nKei => "NK",
+				Koma.s_nGin => "NG",
+				Koma.s_nKaku => "UM",
+				Koma.s_nHi => "RY",
+				_ => ""
+			};
 		}
 	}
 }

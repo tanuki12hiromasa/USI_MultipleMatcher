@@ -13,13 +13,13 @@ namespace USI_MultipleMatch
 		}
 		static bool alive;
 		static List<(uint byoyomi, uint rounds)> matchlist;
-		static uint drawMoves = 400;
+		public static uint drawMoves = 400;
 		static void Main(string[] args) {
 			alive = true;
 			matchlist = new List<(uint byoyomi, uint rounds)>();
 			Console.WriteLine("連続対局プログラム");
 			while (alive) {
-				Console.Write("command?(r/m/s/q) > ");
+				Console.Write("command?(r/m/s/k/q) > ");
 				switch (Console.ReadLine()) {
 					case "register":
 					case "r":
@@ -33,12 +33,17 @@ namespace USI_MultipleMatch
 					case "s":
 						start();
 						break;
+					case "kifutocsa":
+					case "k":
+						Kifu.KifulineToCSA();
+						break;
 					case "quit":
 					case "q":
 						alive = false;
 						break;
 				}
 			}
+			Console.WriteLine("Program finished.");
 		}
 
 		static void register() {
@@ -184,8 +189,16 @@ namespace USI_MultipleMatch
 				return;
 			}
 			//
-			Console.Write("experiment name? > ");
-			string expname = DateTime.Now.ToString("yyyyMMddHHmm") + ' ' + Console.ReadLine();
+			string exptitle = null;
+			while (exptitle != null) {
+				Console.Write("experiment name? > ");
+				string[] sl = Console.ReadLine().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				if (sl.Length > 0)
+				{
+					exptitle = sl[0];
+				}
+			}
+			string expname = DateTime.Now.ToString("yyyyMMddHHmm") + ' ' + exptitle;
 			using (var resultwriter = new StreamWriter(@"./result.txt", true)) {
 				//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
 				foreach (var m in matchlist) {
