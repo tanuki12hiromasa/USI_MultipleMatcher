@@ -232,7 +232,7 @@ namespace USI_MultipleMatch
 								}
 							}
 						}
-						catch(System.IO.IOException e)
+						catch(Exception e)
 						{
 							Console.WriteLine(e.Message);
 							r--;
@@ -387,7 +387,7 @@ namespace USI_MultipleMatch
 			player.StandardInput.WriteLine(gobyoyomi);
 			while (true) {
 				if (player.HasExited) throw new System.IO.IOException("usi engine has crashed");
-				string[] usi = player.StandardOutput.ReadLine().Split(' ');
+				string[] usi = player.StandardOutput.ReadLine()?.Split(' ');
 				if (usi == null || usi.Length == 0) { continue; }
 				else if (usi[0] == "info") {
 					for(int i = 1; i < usi.Length - 1; i++) {
