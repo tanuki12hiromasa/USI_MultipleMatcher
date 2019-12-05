@@ -259,17 +259,58 @@ namespace USI_MultipleMatch
 			string tournamentname = Console.ReadLine();
 			Directory.CreateDirectory(tournamentname);
 			Console.Write("byoyomi? > ");
-
+			uint byoyomi = uint.Parse(Console.ReadLine());
 			Console.Write("number of players? > ");
 			uint players = uint.Parse(Console.ReadLine());
-
 			using (StreamWriter writer = new StreamWriter(tournamentname + @"/setting.txt")) {
-
+				writer.WriteLine($"byoyomi {byoyomi}");
+				writer.WriteLine($"playernum {players}");
 			}
-			Console.Write("player's file path? > ");
-			for(uint i = 0; i < players; i++) {
+			StringBuilder sb_options = new StringBuilder();
+			bool pr = true;
+			while (pr) {
+				Console.Write("player's file path? > ");
+				string path = Console.ReadLine();
+				try {
+					using (Process engine = new Process()) {
+						engine.StartInfo.UseShellExecute = false;
+						engine.StartInfo.RedirectStandardOutput = true;
+						engine.StartInfo.RedirectStandardInput = true;
+						engine.StartInfo.FileName = path;
+						engine.StartInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(path);
+						//pathからエンジンを起動してusiコマンドを入力
+						engine.Start();
+						engine.StandardInput.WriteLine("usi");
+						while (true) {
+							string usi = engine.StandardOutput.ReadLine();
+							var tokens = usi.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+							switch (tokens[0]) {
+								case "id":
+									if (tokens[1] == "name") {
+										sb_options.Append(tokens[2]).Append(Environment.NewLine);
+										sb_options.Append(path).Append(Environment.NewLine);
+										sb_options.Append("USI_Ponder check false").Append(Environment.NewLine);
+										sb_options.Append("USI_Hash spin 256").Append(Environment.NewLine);
+									}
+									break;
+								case "option":
+									sb_options.Append($"{tokens[2]} {tokens[4]} {tokens[6]}").Append(Environment.NewLine);
+									break;
+								case "usiok":
+									Console.WriteLine("register ok.");
+									pr = false;
+									break;
+							}
+						}
+					}
+				}
+				catch (Exception e) {
+					Console.WriteLine(e.Message);
+				}
+			}
+			for (uint i = 0; i < players; i++) {
 				using(StreamWriter writer=new StreamWriter($"{tournamentname}/player{i}.txt")) {
-
+					writer.Write(sb_options.ToString());
 				}
 			}
 		}
