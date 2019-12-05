@@ -19,7 +19,7 @@ namespace USI_MultipleMatch
 			matchlist = new List<(uint byoyomi, uint rounds)>();
 			Console.WriteLine("連続対局プログラム");
 			while (alive) {
-				Console.Write("command?(r/m/s/k/q) > ");
+				Console.Write("command?(r/m/s/tm/ts/k/q) > ");
 				switch (Console.ReadLine()) {
 					case "register":
 					case "r":
@@ -32,6 +32,14 @@ namespace USI_MultipleMatch
 					case "start":
 					case "s":
 						start();
+						break;
+					case "tournamentmakematch":
+					case "tm":
+						setuptournament();
+						break;
+					case "tournamentstart":
+					case "ts":
+						starttournament();
 						break;
 					case "kifutocsa":
 					case "k":
@@ -245,11 +253,35 @@ namespace USI_MultipleMatch
 			}
 			alive = false;
 		}
+		static void setuptournament() {
+			Console.WriteLine("setup new tournament.");
+			Console.Write("tournament name? > ");
+			string tournamentname = Console.ReadLine();
+			Directory.CreateDirectory(tournamentname);
+			Console.Write("byoyomi? > ");
+
+			Console.Write("number of players? > ");
+			uint players = uint.Parse(Console.ReadLine());
+
+			using (StreamWriter writer = new StreamWriter(tournamentname + @"/setting.txt")) {
+
+			}
+			Console.Write("player's file path? > ");
+			for(uint i = 0; i < players; i++) {
+				using(StreamWriter writer=new StreamWriter($"{tournamentname}/player{i}.txt")) {
+
+				}
+			}
+		}
+		static void starttournament() {
+
+		}
+
 		static string setoptionusi(string settingline) {
 			var token = settingline.Split(' ');
 			return $"setoption name {token[0]} value {token[2]}";
 		}
-		static Result match(string matchName, uint byoyomi, string s_path, List<string> s_option, string g_path, List<string> g_option) {
+		static Result match(string matchName, uint byoyomi, string s_path, List<string> s_option, string g_path, List<string> g_option, string kifupath=@"./kifu.txt") {
 			using (Process sente = new Process())
 			using (Process gote = new Process()) {
 				//先手起動
@@ -301,7 +333,7 @@ namespace USI_MultipleMatch
 						evals.Add(-eval);
 						Console.Write($" w:{move}({-eval})");
 						if (move=="resign") {
-							FoutKifu(matchName, kifu, evals, Result.SenteWin);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.SenteWin);
 							gote.StandardInput.WriteLine("gameover lose");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover win");
@@ -309,7 +341,7 @@ namespace USI_MultipleMatch
 							return Result.SenteWin;
 						}
 						else if(move == "win") {
-							FoutKifu(matchName, kifu, evals, Result.GoteWin);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.GoteWin);
 							gote.StandardInput.WriteLine("gameover win");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover lose");
@@ -318,7 +350,7 @@ namespace USI_MultipleMatch
 						}
 						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
 						if (CheckRepetition(nextKyokumen, history)) {
-							FoutKifu(matchName, kifu, evals, Result.Repetition);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.Repetition);
 							gote.StandardInput.WriteLine("gameover draw");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover draw");
@@ -326,7 +358,7 @@ namespace USI_MultipleMatch
 							return Result.Repetition;
 						}
 						if (CheckEndless(history.Count)) {
-							FoutKifu(matchName, kifu, evals, Result.Draw);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.Draw);
 							gote.StandardInput.WriteLine("gameover draw");
 							gote.StandardInput.WriteLine("quit");
 							sente.StandardInput.WriteLine("gameover draw");
@@ -342,7 +374,7 @@ namespace USI_MultipleMatch
 						evals.Add(eval);
 						Console.Write($" b:{move}({eval})");
 						if (move == "resign") {
-							FoutKifu(matchName, kifu, evals, Result.GoteWin);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.GoteWin);
 							sente.StandardInput.WriteLine("gameover lose");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover win");
@@ -350,7 +382,7 @@ namespace USI_MultipleMatch
 							return Result.GoteWin;
 						}
 						else if (move == "win") {
-							FoutKifu(matchName, kifu, evals, Result.SenteWin);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.SenteWin);
 							sente.StandardInput.WriteLine("gameover win");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover lose");
@@ -359,7 +391,7 @@ namespace USI_MultipleMatch
 						}
 						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
 						if (CheckRepetition(nextKyokumen, history)) {
-							FoutKifu(matchName, kifu, evals, Result.Repetition);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.Repetition);
 							sente.StandardInput.WriteLine("gameover draw");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover draw");
@@ -367,7 +399,7 @@ namespace USI_MultipleMatch
 							return Result.Repetition;
 						}
 						if (CheckEndless(history.Count)) {
-							FoutKifu(matchName, kifu, evals, Result.Draw);
+							FoutKifu(kifupath, matchName, kifu, evals, Result.Draw);
 							sente.StandardInput.WriteLine("gameover draw");
 							sente.StandardInput.WriteLine("quit");
 							gote.StandardInput.WriteLine("gameover draw");
@@ -424,8 +456,8 @@ namespace USI_MultipleMatch
 		static bool CheckEndless(int moves) {
 			return moves > drawMoves;
 		}
-		static void FoutKifu(string matchName, List<string> kifu, List<int> evals, Result result) {
-			using (var kifuwriter = new StreamWriter(@"./kifu.txt", true)) {
+		static void FoutKifu(string kifupath, string matchName, List<string> kifu, List<int> evals, Result result) {
+			using (var kifuwriter = new StreamWriter(kifupath, true)) {
 				kifuwriter.Write(matchName);
 				foreach (var move in kifu) kifuwriter.Write(move + " ");
 				kifuwriter.WriteLine();
