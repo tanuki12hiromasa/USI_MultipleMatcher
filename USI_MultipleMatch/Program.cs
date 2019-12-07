@@ -282,7 +282,7 @@ namespace USI_MultipleMatch
 						//pathからエンジンを起動してusiコマンドを入力
 						engine.Start();
 						engine.StandardInput.WriteLine("usi");
-						while (true) {
+						while (pr) {
 							string usi = engine.StandardOutput.ReadLine();
 							var tokens = usi.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 							switch (tokens[0]) {
@@ -298,7 +298,7 @@ namespace USI_MultipleMatch
 									sb_options.Append($"{tokens[2]} {tokens[4]} {tokens[6]}").Append(Environment.NewLine);
 									break;
 								case "usiok":
-									Console.WriteLine("register ok.");
+									Console.WriteLine("player infomation have been aquired.");
 									pr = false;
 									break;
 							}
@@ -316,6 +316,7 @@ namespace USI_MultipleMatch
 					writer.WriteLine($"P{i}");
 					writer.Write(sb_options.ToString());
 				}
+				Console.WriteLine($"player{i} resiserd.");
 			}
 		}
 		static void starttournament() {
@@ -324,8 +325,12 @@ namespace USI_MultipleMatch
 			Console.Write("tournament folder name? > ");
 			string tournamentname = Console.ReadLine();
 			//settingからbyoyomiと人数を読み込む
-			uint byoyomi = 5000;
-			uint playernum = 4;
+			uint byoyomi = 1000;
+			uint playernum = 2;
+			using (StreamReader reader = new StreamReader($"{tournamentname}/setting.txt")) {
+				byoyomi = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
+				playernum = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
+			}
 			//playerリストを作る
 			Player[] playerdata = new Player[playernum];
 			List<int> players = new List<int>();
@@ -355,28 +360,33 @@ namespace USI_MultipleMatch
 						loser.Add(a);
 					}
 				}
+				//playersが奇数人だった場合,最後の一人はシードで上がる
+				if (players.Count % 2 == 1) {
+					survivor.Add(players[players.Count - 1]);
+				}
 				using (StreamWriter writer = new StreamWriter($"{tournamentname}/result.txt", true)) {
 					writer.Write($"Round {rank} loser: ");
 					foreach(var i in loser) {
-						writer.Write(playerdata[i] + " ");
+						writer.Write(playerdata[i].name + " ");
 					}
-					writer.WriteLine(".");
+					writer.WriteLine();
 				}
 				players = survivor.OrderBy(i => Guid.NewGuid()).ToList();
 			}
 			//優勝playerを書き込む
 			using (StreamWriter writer = new StreamWriter($"{tournamentname}/result.txt", true)) {
-				writer.WriteLine($"Tournament Winner: {playerdata[players[0]]}");
+				writer.WriteLine($"Tournament Winner: {playerdata[players[0]].name}");
 			}
-			Console.WriteLine($"Tournament Winner: {playerdata[players[0]]}");
+			Console.WriteLine($"Tournament Winner: {playerdata[players[0]].name}");
+			alive = false;
 		}
 
 		static bool tournamentVs(string tname,uint rank,uint byoyomi,Player a,Player b) {
 			uint win_a = 0, win_b = 0;
-			for (int round=1; ; round++) {
+			for (int game=1; ; game++) {
 				try {
-					if (round % 2 == 1) {
-						var result = match($"{tname}-{rank} ({a.name} vs {b.name}) R{round}: ", byoyomi, a.path, a.options, b.path, b.options, $"./{tname}/kifu.txt");
+					if (game % 2 == 1) {
+						var result = match($"{tname} Round{rank} ({a.name} vs {b.name}) {game}: ", byoyomi, a.path, a.options, b.path, b.options, $"./{tname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
 							case Result.GoteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
@@ -385,7 +395,7 @@ namespace USI_MultipleMatch
 						}
 					}
 					else {
-						var result = match($"{tname}-{rank} ({b.name} vs {a.name}) R{round}: ", byoyomi, b.path, b.options, a.path, a.options, $"./{tname}/kifu.txt");
+						var result = match($"{tname} Round{rank} ({b.name} vs {a.name}) {game}: ", byoyomi, b.path, b.options, a.path, a.options, $"./{tname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
 							case Result.GoteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
@@ -396,7 +406,7 @@ namespace USI_MultipleMatch
 				}
 				catch(Exception e) {
 					Console.WriteLine(e.Message);
-					round--;
+					game--;
 				}
 				if(win_a >= 3 || (win_a == 2 && win_b == 0)) {
 					return true;
