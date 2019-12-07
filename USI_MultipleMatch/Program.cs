@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Diagnostics;
 using System.Text;
+using System.Linq;
 namespace USI_MultipleMatch
 {
 	class Program
@@ -308,17 +309,105 @@ namespace USI_MultipleMatch
 					Console.WriteLine(e.Message);
 				}
 			}
+			//playerを作成
+			//1行目:name 2行目:ソフト名 3行目:path 4行目~:option
 			for (uint i = 0; i < players; i++) {
 				using(StreamWriter writer=new StreamWriter($"{tournamentname}/player{i}.txt")) {
+					writer.WriteLine($"P{i}");
 					writer.Write(sb_options.ToString());
 				}
 			}
 		}
 		static void starttournament() {
-
+			//tounamentを開く
+			Console.WriteLine("start tournament.");
+			Console.Write("tournament folder name? > ");
+			string tournamentname = Console.ReadLine();
+			//settingからbyoyomiと人数を読み込む
+			uint byoyomi = 5000;
+			uint playernum = 4;
+			//playerリストを作る
+			Player[] playerdata = new Player[playernum];
+			List<int> players = new List<int>();
+			for(int i = 0; i < playernum; i++) {
+				playerdata[i] = new Player($"{tournamentname}/player{i}.txt");
+				players.Add(i);
+			}
+			//順番をシャッフル
+			players = players.OrderBy(i => Guid.NewGuid()).ToList();
+			//トーナメントを行う
+			uint rank = 0;
+			while (players.Count > 1) {
+				rank++;
+				List<int> survivor = new List<int>();
+				List<int> loser = new List<int>();
+				//前から順にマッチング
+				for(int i = 1; i < players.Count; i += 2) {
+					int a = players[i - 1];
+					int b = players[i];
+					var awin = tournamentVs(tournamentname, rank, byoyomi, playerdata[a], playerdata[b]);
+					if (awin) {
+						survivor.Add(a);
+						loser.Add(b);
+					}
+					else {
+						survivor.Add(b);
+						loser.Add(a);
+					}
+				}
+				using (StreamWriter writer = new StreamWriter($"{tournamentname}/result.txt", true)) {
+					writer.Write($"Round {rank} loser: ");
+					foreach(var i in loser) {
+						writer.Write(playerdata[i] + " ");
+					}
+					writer.WriteLine(".");
+				}
+				players = survivor.OrderBy(i => Guid.NewGuid()).ToList();
+			}
+			//優勝playerを書き込む
+			using (StreamWriter writer = new StreamWriter($"{tournamentname}/result.txt", true)) {
+				writer.WriteLine($"Tournament Winner: {playerdata[players[0]]}");
+			}
+			Console.WriteLine($"Tournament Winner: {playerdata[players[0]]}");
 		}
 
-		static string setoptionusi(string settingline) {
+		static bool tournamentVs(string tname,uint rank,uint byoyomi,Player a,Player b) {
+			uint win_a = 0, win_b = 0;
+			for (int round=1; ; round++) {
+				try {
+					if (round % 2 == 1) {
+						var result = match($"{tname}-{rank} ({a.name} vs {b.name}) R{round}: ", byoyomi, a.path, a.options, b.path, b.options, $"./{tname}/kifu.txt");
+						switch (result) {
+							case Result.SenteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
+							case Result.GoteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
+							case Result.Repetition: Console.WriteLine(" Repetition Draw"); break;
+							case Result.Draw: Console.WriteLine(" Draw"); break;
+						}
+					}
+					else {
+						var result = match($"{tname}-{rank} ({b.name} vs {a.name}) R{round}: ", byoyomi, b.path, b.options, a.path, a.options, $"./{tname}/kifu.txt");
+						switch (result) {
+							case Result.SenteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
+							case Result.GoteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
+							case Result.Repetition: Console.WriteLine(" Repetition Draw"); break;
+							case Result.Draw: Console.WriteLine(" Draw"); break;
+						}
+					}
+				}
+				catch(Exception e) {
+					Console.WriteLine(e.Message);
+					round--;
+				}
+				if(win_a >= 3 || (win_a == 2 && win_b == 0)) {
+					return true;
+				}
+				if(win_b >= 3 || (win_b==2 && win_a == 0)) {
+					return false;
+				}
+			}
+		}
+
+		public static string setoptionusi(string settingline) {
 			var token = settingline.Split(' ');
 			return $"setoption name {token[0]} value {token[2]}";
 		}
