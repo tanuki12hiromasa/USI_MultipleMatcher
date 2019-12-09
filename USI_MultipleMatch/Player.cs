@@ -10,6 +10,11 @@ namespace USI_MultipleMatch
 		public string name;
 		public string path;
 		public List<string> options;
+		public Player(string name,string path, List<string> options) {
+			this.name = name;
+			this.path = path;
+			this.options = options;
+		}
 		public Player(string settingpath) {
 			//1行目:name 2行目:ソフト名 3行目:path 4行目~:option
 			using (StreamReader reader=new StreamReader(settingpath)) {

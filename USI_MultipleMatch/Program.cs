@@ -54,7 +54,6 @@ namespace USI_MultipleMatch
 			}
 			Console.WriteLine("Program finished.");
 		}
-
 		static void register() {
 			string p = " ";
 			while (p != "a" && p != "A" && p != "b" && p != "B") {
