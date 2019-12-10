@@ -8,10 +8,6 @@ namespace USI_MultipleMatch
 {
 	class Program
 	{
-		enum Result
-		{
-			SenteWin, GoteWin, Repetition, Draw
-		}
 		static bool alive;
 		static List<(uint byoyomi, uint rounds)> matchlist;
 		public static uint drawMoves = 400;

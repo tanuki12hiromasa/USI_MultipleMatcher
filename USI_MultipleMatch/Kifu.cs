@@ -6,6 +6,24 @@ namespace USI_MultipleMatch
 {
 	class Kifu
 	{
+		public static readonly string TimeFormat = "yyyy/MM/dd-HH:mm";
+		public static void FoutKifu(DateTime starttime, string matchName, Player b, Player w, uint byoyomi, List<string> kifu, int startmoveindex, List<int> evals, Result result, string kifupath) {
+			using (var kifuwriter = new StreamWriter(kifupath, true)) {
+				kifuwriter.Write($"{starttime.ToString(TimeFormat)} {matchName} ({b.name} vs {w.name}) {byoyomi}ms: ");
+				foreach (var move in kifu) kifuwriter.Write(move + " ");
+				kifuwriter.WriteLine();
+				switch (result) {
+					case Result.SenteWin: kifuwriter.Write("SenteWin "); break;
+					case Result.GoteWin: kifuwriter.Write("GoteWin "); break;
+					case Result.Repetition: kifuwriter.Write("Sennichite "); break;
+					case Result.Draw: kifuwriter.Write("Over400moves "); break;
+				}
+				kifuwriter.Write($"start:{startmoveindex} ");
+				kifuwriter.Write("eval: ");
+				foreach (var eval in evals) kifuwriter.Write(eval + " ");
+				kifuwriter.WriteLine();
+			}
+		}
 		public static void KifulineToCSA() {
 			Console.WriteLine("input kifu line by kifu.txt");
 			Console.Write(">");
