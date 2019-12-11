@@ -12,7 +12,7 @@ namespace USI_MultipleMatch
 	}
 	class Match 
 	{
-		public static Result match(string kifupath, string matchname, uint byoyomi, Player b, Player w, string startpos = "startpos") {//開始局面のusiはsfen部分から
+		public static Result match(string matchname, uint byoyomi, Player b, Player w, string startpos = "startpos", string kifupath = @"./kifu.txt") {//開始局面のusiはsfen部分から
 			using (Process sente = new Process())
 			using (Process gote = new Process()) {
 				Console.Write($"waiting setup {b.name}...");
@@ -23,7 +23,7 @@ namespace USI_MultipleMatch
 				Console.WriteLine(" readyok.");
 				List<string> kifu = new List<string>();
 				List<int> evals = new List<int>();
-				int startmove = 0;
+				int startmove = 1;
 				List<Kyokumen> history = new List<Kyokumen>();
 				string go = $"go btime 0 wtime 0 byoyomi {byoyomi}";
 				var starttime = DateTime.Now;
@@ -76,11 +76,11 @@ namespace USI_MultipleMatch
 						}
 						history.Add(nextKyokumen);
 					}
-					else {
+					else {//後手
 						var (move, eval) = GetMove(gote, position(startpos, kifu), go);
 						kifu.Add(move);
-						evals.Add(eval);
-						Console.Write($" w:{move}({eval})");
+						evals.Add(-eval);
+						Console.Write($" w:{move}({-eval})");
 						if (move == "resign") {
 							Result result = Result.SenteWin;
 							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);

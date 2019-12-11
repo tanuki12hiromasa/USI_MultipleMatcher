@@ -35,6 +35,7 @@ namespace USI_MultipleMatch
 		public Player(string enginepath,string playername) {//enginepathからengineを起動しデフォルトの値を読み込んでPlayerを生成する
 			name = playername;
 			path = enginepath;
+			options = new List<string>();
 			using (Process engine = new Process()) {
 				engine.StartInfo.UseShellExecute = false;
 				engine.StartInfo.RedirectStandardOutput = true;
