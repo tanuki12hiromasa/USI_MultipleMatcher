@@ -112,6 +112,25 @@ namespace USI_MultipleMatch
 					matchname = sl[0];
 				}
 			}
+			int randomposlines = 0;
+			string randomposfilepath = null;
+			while (randomposfilepath == null) {
+				Console.Write("use random startpos?(y/n) > ");
+				if (Console.ReadLine() == "y") {
+					Console.Write("startpos file path? > ");
+					try {
+						randomposfilepath = Console.ReadLine();
+						randomposlines = Kifu.CountStartPosLines(randomposfilepath);
+						Console.WriteLine($"lines: {randomposlines}");
+					}
+					catch(Exception e) {
+						Console.WriteLine(e.Message);
+					}
+				}
+				else {
+					randomposfilepath = "none";
+				}
+			}
 			//A,Bの設定を読み込む
 			Player playera, playerb;
 			try {
@@ -136,12 +155,13 @@ namespace USI_MultipleMatch
 					uint[] results = new uint[4] { 0, 0, 0, 0 };
 					string starttime = DateTime.Now.ToString(Kifu.TimeFormat);
 					for (uint r = 1; r <= m.rounds; r++) {
+						string startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
 						try
 						{
 							if (r % 2 != 0)
 							{
 								//a先手
-								var result = Match.match(matchname, m.byoyomi, playera, playerb);
+								var result = Match.match(matchname, m.byoyomi, playera, playerb, startpos);
 								switch (result)
 								{
 									case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
@@ -153,7 +173,7 @@ namespace USI_MultipleMatch
 							else
 							{
 								//b先手
-								var result = Match.match(matchname, m.byoyomi, playera, playerb);
+								var result = Match.match(matchname, m.byoyomi, playera, playerb, startpos);
 								switch (result)
 								{
 									case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
