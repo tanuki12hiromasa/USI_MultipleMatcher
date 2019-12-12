@@ -203,11 +203,32 @@ namespace USI_MultipleMatch
 			Directory.CreateDirectory(tournamentname);
 			Console.Write("byoyomi? > ");
 			uint byoyomi = uint.Parse(Console.ReadLine());
+			string randomposfilepath = null;
+			while (randomposfilepath == null) {
+				Console.Write("use random startpos?(y/n) > ");
+				if (Console.ReadLine() == "y") {
+					Console.Write("startpos file path? > ");
+					try {
+						randomposfilepath = Console.ReadLine();
+						if(Kifu.CountStartPosLines(randomposfilepath) == 0) {
+							Console.WriteLine("failed to read.");
+							randomposfilepath = null;
+						}
+					}
+					catch (Exception e) {
+						Console.WriteLine(e.Message);
+					}
+				}
+				else {
+					randomposfilepath = "none";
+				}
+			}
 			Console.Write("number of players? > ");
 			uint playernum = uint.Parse(Console.ReadLine());
 			using (StreamWriter writer = new StreamWriter(tournamentname + @"/setting.txt")) {
 				writer.WriteLine($"byoyomi {byoyomi}");
 				writer.WriteLine($"playernum {playernum}");
+				writer.WriteLine(randomposfilepath);
 			}
 			Player player;
 			while (true) {
@@ -236,9 +257,11 @@ namespace USI_MultipleMatch
 			//settingからbyoyomiと人数を読み込む
 			uint byoyomi = 1000;
 			uint playernum = 2;
+			string startposfile;
 			using (StreamReader reader = new StreamReader($"{tournamentname}/setting.txt")) {
 				byoyomi = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
 				playernum = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
+				startposfile = reader.ReadLine();
 			}
 			//playerリストを作る
 			Player[] playerdata = new Player[playernum];
@@ -259,7 +282,7 @@ namespace USI_MultipleMatch
 				for(int i = 1; i < players.Count; i += 2) {
 					int a = players[i - 1];
 					int b = players[i];
-					var awin = tournamentVs(tournamentname, rank, byoyomi, playerdata[a], playerdata[b]);
+					var awin = tournamentVs(tournamentname, rank, byoyomi, playerdata[a], playerdata[b], startposfile);
 					if (awin) {
 						survivor.Add(a);
 						loser.Add(b);
@@ -291,12 +314,14 @@ namespace USI_MultipleMatch
 			alive = false;
 		}
 
-		static bool tournamentVs(string tname,uint rank,uint byoyomi,Player a,Player b) {
+		static bool tournamentVs(string tname,uint rank,uint byoyomi,Player a,Player b,string startposfile) {
 			uint win_a = 0, win_b = 0;
+			int startposlines = Kifu.CountStartPosLines(startposfile);
 			for (int game=1; ; game++) {
+				string startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
 				try {
 					if (game % 2 == 1) {
-						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, a, b, kifupath: $"./{tname}/kifu.txt");
+						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, a, b, startpos, $"./{tname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
 							case Result.GoteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
@@ -305,7 +330,7 @@ namespace USI_MultipleMatch
 						}
 					}
 					else {
-						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, b, a, kifupath: $"./{tname}/kifu.txt");
+						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, b, a, startpos, $"./{tname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
 							case Result.GoteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
