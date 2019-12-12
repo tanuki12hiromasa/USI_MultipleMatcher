@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Linq;
 namespace USI_MultipleMatch
 {
 	class Kifu
@@ -81,6 +82,25 @@ namespace USI_MultipleMatch
 
 				Console.WriteLine("kifu has been converted.");
 			}
+		}
+		public static int CountStartPosLines(string filepath) {
+			int linecount = 0;
+			foreach(var line in File.ReadLines(filepath)) {
+				if (line.StartsWith("startpos")) {
+					linecount++;
+				}
+				else {
+					return linecount;
+				}
+			}
+			return linecount;
+		}
+		public static string GetRandomStartPos(string filepath,int maxline) {
+			Random rnd = new Random();
+			if (maxline > 0)
+				return File.ReadLines(filepath).Skip(rnd.Next(maxline)).First();
+			else
+				return "startpos";
 		}
 	}
 }

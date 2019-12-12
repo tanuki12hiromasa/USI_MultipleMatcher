@@ -12,7 +12,7 @@ namespace USI_MultipleMatch
 	}
 	class Match 
 	{
-		public static Result match(string matchname, uint byoyomi, Player b, Player w, string startpos = "startpos", string kifupath = @"./kifu.txt") {//開始局面のusiはsfen部分から
+		public static Result match(string matchname, uint byoyomi, Player b, Player w, string startusi = "startpos", string kifupath = @"./kifu.txt") {//開始局面のusiはsfen部分から
 			using (Process sente = new Process())
 			using (Process gote = new Process()) {
 				Console.Write($"waiting setup {b.name}...");
@@ -27,12 +27,13 @@ namespace USI_MultipleMatch
 				List<Kyokumen> history = new List<Kyokumen>();
 				string go = $"go btime 0 wtime 0 byoyomi {byoyomi}";
 				var starttime = DateTime.Now;
-				if (startpos != "startpos") {
-					string[] tokens = startpos.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+				string startsfen = "startpos";
+				if (startusi != "startpos") {
+					string[] tokens = startusi.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 					if (tokens[0] != "startpos") throw new NotImplementedException();
 					else {
 						history.Add(new Kyokumen());
-						for(int i = 2; i < tokens.Length - 1; i++) {
+						for(int i = 2; i < tokens.Length; i++) {
 							kifu.Add(tokens[i]);
 							history.Add(new Kyokumen(history[history.Count - 1], tokens[i]));
 						}
@@ -42,10 +43,11 @@ namespace USI_MultipleMatch
 				else {
 					history.Add(new Kyokumen());
 				}
-				Console.Write(matchname);
+				Console.WriteLine($"start at {startusi}");
+				Console.Write($"{starttime.ToString(Kifu.TimeFormat)} {matchname}:");
 				while (true) {
 					if (kifu.Count % 2 == 0) {//先手
-						var (move, eval) = GetMove(sente, position(startpos, kifu), go);
+						var (move, eval) = GetMove(sente, position(startsfen, kifu), go);
 						kifu.Add(move);
 						evals.Add(eval);
 						Console.Write($" b:{move}({eval})");
@@ -77,7 +79,7 @@ namespace USI_MultipleMatch
 						history.Add(nextKyokumen);
 					}
 					else {//後手
-						var (move, eval) = GetMove(gote, position(startpos, kifu), go);
+						var (move, eval) = GetMove(gote, position(startsfen, kifu), go);
 						kifu.Add(move);
 						evals.Add(-eval);
 						Console.Write($" w:{move}({-eval})");
@@ -112,16 +114,16 @@ namespace USI_MultipleMatch
 			}
 		}
 
-		static string position(string start,List<string> kifu) {
+		static string position(string startsfen, List<string> kifu) {
 			if (kifu.Count > 0) {
-				StringBuilder sb = new StringBuilder("position ").Append(start);
+				StringBuilder sb = new StringBuilder("position ").Append(startsfen);
 				sb.Append(" moves");
 				foreach(string move in kifu) {
 					sb.Append(" ").Append(move);
 				}
 				return sb.ToString();
 			}
-			return start;
+			return $"position {startsfen}";
 		}
 
 		static bool CheckRepetition(Kyokumen kyokumen, List<Kyokumen> history) {
