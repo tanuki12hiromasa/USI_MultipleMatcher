@@ -61,7 +61,7 @@ namespace USI_MultipleMatch
 				settingpath = "./PlayerA.txt";
 			}
 			else {
-				playername = "playerB";
+				playername = "PlayerB";
 				settingpath = "./PlayerB.txt";
 			}
 			while (true) {
@@ -153,50 +153,47 @@ namespace USI_MultipleMatch
 				Console.WriteLine(e.Message);
 				return;
 			}
-			using (var resultwriter = new StreamWriter(@"./result.txt", true)) {
-				//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
-				foreach (var m in matchlist) {
-					uint[] results = new uint[4] { 0, 0, 0, 0 };
-					string starttime = DateTime.Now.ToString(Kifu.TimeFormat);
-					for (uint r = 1; r <= m.rounds; r++) {
-						string startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
-						try
-						{
-							if (r % 2 != 0)
-							{
-								//a先手
-								var result = Match.match(matchname, m.byoyomi, playera, playerb, startpos);
-								switch (result)
-								{
-									case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-									case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-									case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-									case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
-								}
-							}
-							else
-							{
-								//b先手
-								var result = Match.match(matchname, m.byoyomi, playera, playerb, startpos);
-								switch (result)
-								{
-									case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-									case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-									case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-									case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
-								}
+			Directory.CreateDirectory($"./playerlog/{matchname}");
+			playera.settingsave($"./playerlog/{matchname}/PlayerA.txt");
+			playerb.settingsave($"./playerlog/{matchname}/PlayerB.txt");
+			//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
+			foreach (var m in matchlist) {
+				uint[] results = new uint[4] { 0, 0, 0, 0 };
+				string starttime = DateTime.Now.ToString(Kifu.TimeFormat);
+				for (uint r = 1; r <= m.rounds; r++) {
+					string startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
+					try {
+						if (r % 2 != 0) {
+							//a先手
+							var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+							switch (result) {
+								case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+								case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
 							}
 						}
-						catch(Exception e)
-						{
-							Console.WriteLine(e.Message);
-							r--;
+						else {
+							//b先手
+							var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+							switch (result) {
+								case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+								case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
+							}
 						}
 					}
-					string matchResult = $"{starttime} {matchname} {m.byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({playera.enginename} vs {playerb.enginename})";
-					resultwriter.WriteLine(matchResult);
-					Console.WriteLine(matchResult);
+					catch (Exception e) {
+						Console.WriteLine(e.Message);
+						r--;
+					}
 				}
+				string matchResult = $"{starttime} {matchname} {m.byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({playera.enginename} vs {playerb.enginename})";
+				using (var resultwriter = new StreamWriter(@"./result.txt", true)) {
+					resultwriter.WriteLine(matchResult);
+				}
+				Console.WriteLine(matchResult);
 			}
 			alive = false;
 		}
