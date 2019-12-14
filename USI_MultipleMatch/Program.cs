@@ -320,7 +320,7 @@ namespace USI_MultipleMatch
 				string startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
 				try {
 					if (game % 2 == 1) {
-						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, a, b, startpos, $"./{tname}/kifu.txt");
+						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, a, b, startpos, $"./tournament/{tname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
 							case Result.GoteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
@@ -329,7 +329,7 @@ namespace USI_MultipleMatch
 						}
 					}
 					else {
-						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, b, a, startpos, $"./{tname}/kifu.txt");
+						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, b, a, startpos, $"./tournament/{tname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
 							case Result.GoteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
