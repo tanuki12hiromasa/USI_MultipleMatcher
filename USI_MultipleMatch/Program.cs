@@ -122,13 +122,11 @@ namespace USI_MultipleMatch
 				Console.Write("use random startpos?(y/n) > ");
 				if (Console.ReadLine() == "y") {
 					Console.Write("startpos file path? > ");
-					try {
-						randomposfilepath = Console.ReadLine();
-						randomposlines = Kifu.CountStartPosLines(randomposfilepath);
-						Console.WriteLine($"lines: {randomposlines}");
-					}
-					catch(Exception e) {
-						Console.WriteLine(e.Message);
+					randomposfilepath = Console.ReadLine();
+					randomposlines = Kifu.CountStartPosLines(randomposfilepath);
+					if (randomposlines == 0) {
+						Console.WriteLine("failed to read startpos file.");
+						randomposfilepath = null;
 					}
 				}
 				else {
@@ -211,15 +209,10 @@ namespace USI_MultipleMatch
 				Console.Write("use random startpos?(y/n) > ");
 				if (Console.ReadLine() == "y") {
 					Console.Write("startpos file path? > ");
-					try {
-						randomposfilepath = Console.ReadLine();
-						if(Kifu.CountStartPosLines(randomposfilepath) == 0) {
-							Console.WriteLine("failed to read.");
-							randomposfilepath = null;
-						}
-					}
-					catch (Exception e) {
-						Console.WriteLine(e.Message);
+					randomposfilepath = Console.ReadLine();
+					if (Kifu.CountStartPosLines(randomposfilepath) == 0) {
+						Console.WriteLine("failed to read.");
+						randomposfilepath = null;
 					}
 				}
 				else {
