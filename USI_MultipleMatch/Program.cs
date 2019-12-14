@@ -14,7 +14,7 @@ namespace USI_MultipleMatch
 			alive = true;
 			Console.WriteLine("連続対局プログラム");
 			while (alive) {
-				Console.Write("command?(r/s/tm/ts/k/q) > ");
+				Console.Write("command?(r/s/tm/ts/ls/k/q) > ");
 				switch (Console.ReadLine()) {
 					case "register":
 					case "r":
@@ -31,6 +31,10 @@ namespace USI_MultipleMatch
 					case "tournamentstart":
 					case "ts":
 						starttournament();
+						break;
+					case "leaguestart":
+					case "ls":
+						startleague();
 						break;
 					case "kifutocsa":
 					case "k":
@@ -57,7 +61,7 @@ namespace USI_MultipleMatch
 				settingpath = "./PlayerA.txt";
 			}
 			else {
-				playername = "playerB";
+				playername = "PlayerB";
 				settingpath = "./PlayerB.txt";
 			}
 			while (true) {
@@ -118,13 +122,11 @@ namespace USI_MultipleMatch
 				Console.Write("use random startpos?(y/n) > ");
 				if (Console.ReadLine() == "y") {
 					Console.Write("startpos file path? > ");
-					try {
-						randomposfilepath = Console.ReadLine();
-						randomposlines = Kifu.CountStartPosLines(randomposfilepath);
-						Console.WriteLine($"lines: {randomposlines}");
-					}
-					catch(Exception e) {
-						Console.WriteLine(e.Message);
+					randomposfilepath = Console.ReadLine();
+					randomposlines = Kifu.CountStartPosLines(randomposfilepath);
+					if (randomposlines == 0) {
+						Console.WriteLine("failed to read startpos file.");
+						randomposfilepath = null;
 					}
 				}
 				else {
@@ -149,50 +151,47 @@ namespace USI_MultipleMatch
 				Console.WriteLine(e.Message);
 				return;
 			}
-			using (var resultwriter = new StreamWriter(@"./result.txt", true)) {
-				//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
-				foreach (var m in matchlist) {
-					uint[] results = new uint[4] { 0, 0, 0, 0 };
-					string starttime = DateTime.Now.ToString(Kifu.TimeFormat);
-					for (uint r = 1; r <= m.rounds; r++) {
-						string startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
-						try
-						{
-							if (r % 2 != 0)
-							{
-								//a先手
-								var result = Match.match(matchname, m.byoyomi, playera, playerb, startpos);
-								switch (result)
-								{
-									case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-									case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-									case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-									case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
-								}
-							}
-							else
-							{
-								//b先手
-								var result = Match.match(matchname, m.byoyomi, playera, playerb, startpos);
-								switch (result)
-								{
-									case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-									case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-									case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-									case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
-								}
+			Directory.CreateDirectory($"./playerlog/{matchname}");
+			playera.settingsave($"./playerlog/{matchname}/PlayerA.txt");
+			playerb.settingsave($"./playerlog/{matchname}/PlayerB.txt");
+			//matchlistに沿ってA,Bの先後を入れ替えながら対局させる
+			foreach (var m in matchlist) {
+				uint[] results = new uint[4] { 0, 0, 0, 0 };
+				string starttime = DateTime.Now.ToString(Kifu.TimeFormat);
+				for (uint r = 1; r <= m.rounds; r++) {
+					string startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
+					try {
+						if (r % 2 != 0) {
+							//a先手
+							var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+							switch (result) {
+								case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+								case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
 							}
 						}
-						catch(Exception e)
-						{
-							Console.WriteLine(e.Message);
-							r--;
+						else {
+							//b先手
+							var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+							switch (result) {
+								case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+								case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
+							}
 						}
 					}
-					string matchResult = $"{starttime} {matchname} {m.byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({playera.enginename} vs {playerb.enginename})";
-					resultwriter.WriteLine(matchResult);
-					Console.WriteLine(matchResult);
+					catch (Exception e) {
+						Console.WriteLine(e.Message);
+						r--;
+					}
 				}
+				string matchResult = $"{starttime} {matchname} {m.byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({playera.enginename} vs {playerb.enginename})";
+				using (var resultwriter = new StreamWriter(@"./result.txt", true)) {
+					resultwriter.WriteLine(matchResult);
+				}
+				Console.WriteLine(matchResult);
 			}
 			alive = false;
 		}
@@ -200,23 +199,20 @@ namespace USI_MultipleMatch
 			Console.WriteLine("setup new tournament.");
 			Console.Write("tournament name? > ");
 			string tournamentname = Console.ReadLine();
-			Directory.CreateDirectory(tournamentname);
+			Directory.CreateDirectory($"tournament/{tournamentname}");
 			Console.Write("byoyomi? > ");
 			uint byoyomi = uint.Parse(Console.ReadLine());
+			Console.Write("How many matches per 1 round? > ");
+			uint matchnum = uint.Parse(Console.ReadLine());
 			string randomposfilepath = null;
 			while (randomposfilepath == null) {
 				Console.Write("use random startpos?(y/n) > ");
 				if (Console.ReadLine() == "y") {
 					Console.Write("startpos file path? > ");
-					try {
-						randomposfilepath = Console.ReadLine();
-						if(Kifu.CountStartPosLines(randomposfilepath) == 0) {
-							Console.WriteLine("failed to read.");
-							randomposfilepath = null;
-						}
-					}
-					catch (Exception e) {
-						Console.WriteLine(e.Message);
+					randomposfilepath = Console.ReadLine();
+					if (Kifu.CountStartPosLines(randomposfilepath) == 0) {
+						Console.WriteLine("failed to read.");
+						randomposfilepath = null;
 					}
 				}
 				else {
@@ -225,8 +221,9 @@ namespace USI_MultipleMatch
 			}
 			Console.Write("number of players? > ");
 			uint playernum = uint.Parse(Console.ReadLine());
-			using (StreamWriter writer = new StreamWriter(tournamentname + @"/setting.txt")) {
+			using (StreamWriter writer = new StreamWriter(@$"./tournament/{tournamentname}/tsetting.txt")) {
 				writer.WriteLine($"byoyomi {byoyomi}");
+				writer.WriteLine($"matchnum {matchnum}");
 				writer.WriteLine($"playernum {playernum}");
 				writer.WriteLine(randomposfilepath);
 			}
@@ -246,7 +243,7 @@ namespace USI_MultipleMatch
 			//1行目:name 2行目:ソフト名 3行目:path 4行目~:option
 			for (uint i = 0; i < playernum; i++) {
 				player.name = $"P{i}";
-				player.settingsave($"./{tournamentname}/player{i}.txt");
+				player.settingsave($"./tournament/{tournamentname}/player{i}.txt");
 			}
 		}
 		static void starttournament() {
@@ -256,10 +253,12 @@ namespace USI_MultipleMatch
 			string tournamentname = Console.ReadLine();
 			//settingからbyoyomiと人数を読み込む
 			uint byoyomi = 1000;
+			uint matchnum = 5;
 			uint playernum = 2;
 			string startposfile;
-			using (StreamReader reader = new StreamReader($"{tournamentname}/setting.txt")) {
+			using (StreamReader reader = new StreamReader($"./tournament/{tournamentname}/tsetting.txt")) {
 				byoyomi = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
+				matchnum = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
 				playernum = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
 				startposfile = reader.ReadLine();
 			}
@@ -267,7 +266,7 @@ namespace USI_MultipleMatch
 			Player[] playerdata = new Player[playernum];
 			List<int> players = new List<int>();
 			for(int i = 0; i < playernum; i++) {
-				playerdata[i] = new Player($"{tournamentname}/player{i}.txt");
+				playerdata[i] = new Player($"./tournament/{tournamentname}/player{i}.txt");
 				players.Add(i);
 			}
 			//順番をシャッフル
@@ -282,7 +281,7 @@ namespace USI_MultipleMatch
 				for(int i = 1; i < players.Count; i += 2) {
 					int a = players[i - 1];
 					int b = players[i];
-					var awin = tournamentVs(tournamentname, rank, byoyomi, playerdata[a], playerdata[b], startposfile);
+					var awin = tournamentVs(tournamentname, rank, byoyomi, matchnum, playerdata[a], playerdata[b], startposfile);
 					if (awin) {
 						survivor.Add(a);
 						loser.Add(b);
@@ -296,7 +295,7 @@ namespace USI_MultipleMatch
 				if (players.Count % 2 == 1) {
 					survivor.Add(players[players.Count - 1]);
 				}
-				using (StreamWriter writer = new StreamWriter($"{tournamentname}/result.txt", true)) {
+				using (StreamWriter writer = new StreamWriter($"./tournament/{tournamentname}/result.txt", true)) {
 					writer.Write($"Round {rank} player: ");
 					foreach (var i in players) { writer.Write($"{playerdata[i].name} "); }
 					writer.WriteLine();
@@ -307,14 +306,14 @@ namespace USI_MultipleMatch
 				players = survivor.OrderBy(i => Guid.NewGuid()).ToList();
 			}
 			//優勝playerを書き込む
-			using (StreamWriter writer = new StreamWriter($"{tournamentname}/result.txt", true)) {
+			using (StreamWriter writer = new StreamWriter($"./tournament/{tournamentname}/result.txt", true)) {
 				writer.WriteLine($"Tournament Winner: {playerdata[players[0]].name}");
 			}
 			Console.WriteLine($"Tournament Winner: {playerdata[players[0]].name}");
 			alive = false;
 		}
 
-		static bool tournamentVs(string tname,uint rank,uint byoyomi,Player a,Player b,string startposfile) {
+		static bool tournamentVs(string tname,uint rank,uint byoyomi,uint matchnum,Player a,Player b,string startposfile) {
 			uint win_a = 0, win_b = 0;
 			int startposlines = Kifu.CountStartPosLines(startposfile);
 			for (int game=1; ; game++) {
@@ -343,15 +342,127 @@ namespace USI_MultipleMatch
 					Console.WriteLine(e.Message);
 					game--;
 				}
-				if(win_a >= 3 || (win_a == 2 && win_b == 0)) {
+				if(win_a > matchnum / 2) {
 					return true;
 				}
-				if(win_b >= 3 || (win_b==2 && win_a == 0)) {
+				if(win_b > matchnum / 2) {
 					return false;
 				}
 			}
 		}
 
+		static void startleague() {
+			Console.WriteLine("start league.");
+			Console.Write("league folder name?(use tournament setup) > ");
+			string leaguentname = Console.ReadLine();
+			//settingからbyoyomiと人数を読み込む
+			uint byoyomi = 1000;
+			uint matchnum = 2;
+			uint playernum = 2;
+			string startposfile;
+			using (StreamReader reader = new StreamReader($"./tournament/{leaguentname}/tsetting.txt")) {
+				byoyomi = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
+				matchnum = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
+				playernum = uint.Parse(reader.ReadLine()?.Split(' ', StringSplitOptions.RemoveEmptyEntries)[1]);
+				startposfile = reader.ReadLine();
+			}
+			int startposlines = Kifu.CountStartPosLines(startposfile);
+			//playerリストを作る
+			Player[] playerdata = new Player[playernum];
+			for (int i = 0; i < playernum; i++) {
+				playerdata[i] = new Player($"./tournament/{leaguentname}/player{i}.txt");
+			}
+			uint[,,] results = new uint[playernum, playernum, 4];
+			uint[,] points = new uint[playernum,4];
+			for (int i = 0; i < playernum; i++) {
+				for (int j = 0; j < 4; j++) {
+					points[i, j] = 0;
+					for(int h = 0; h < playernum; h++) {
+						results[h, i, j] = 0;
+					}
+				}
+			}
+			//総当たり戦を行う
+			for(int a = 0; a < playernum; a++) {
+				for(int b = a + 1; b < playernum; b++) {
+					for(int t = 1; t <= matchnum; t++) {
+						string startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
+						Result result;
+						try {
+							if (t % 2 == 1) {
+								result = Match.match($"{leaguentname}-{t}", byoyomi, playerdata[a], playerdata[b], startpos, $"./tournament/{leaguentname}/kifu.txt");
+								switch (result) {
+									case Result.SenteWin: 
+										points[a, 0]++; points[b, 1]++; results[a, b, 0]++; results[b, a, 1]++;
+										Console.WriteLine($" {playerdata[a].name} win");break;
+									case Result.GoteWin: 
+										points[a, 1]++; points[b, 0]++; results[a, b, 1]++; results[b, a, 0]++;
+										Console.WriteLine($" {playerdata[b].name} win");break;
+									case Result.Repetition:
+										points[a, 2]++; points[b, 2]++; results[a, b, 2]++; results[b, a, 2]++; 
+										Console.WriteLine(" Repetition Draw"); break;
+									case Result.Draw:
+										points[a, 3]++; points[b, 3]++; results[a, b, 3]++; results[b, a, 3]++; 
+										Console.WriteLine(" Draw"); break;
+								}
+							}
+							else {
+								result = Match.match($"{leaguentname}-{t}", byoyomi, playerdata[b], playerdata[a], startpos, $"./tournament/{leaguentname}/kifu.txt");
+								switch (result) {
+									case Result.SenteWin: 
+										points[b, 0]++; points[a, 1]++; results[b, a, 0]++; results[a, b, 1]++;
+										Console.WriteLine($" {playerdata[b].name} win");break;
+									case Result.GoteWin:
+										points[b, 1]++; points[a, 0]++; results[b, a, 1]++; results[a, b, 0]++;
+										Console.WriteLine($" {playerdata[a].name} win");break;
+									case Result.Repetition:
+										points[a, 2]++; points[b, 2]++; results[a, b, 2]++; results[b, a, 2]++; 
+										Console.WriteLine(" Repetition Draw"); break;
+									case Result.Draw:
+										points[a, 3]++; points[b, 3]++; results[a, b, 3]++; results[b, a, 3]++; 
+										Console.WriteLine(" Draw"); break;
+								}
+							}
+						}
+						catch (Exception e) {
+							Console.WriteLine(e.Message);
+							t--;
+							continue;
+						}
+					}
+				}
+			}
+			//順位をまとめる
+			int[] ranking = new int[playernum];
+			for (int i = 0; i < playernum; i++) ranking[i] = i;
+			ranking = ranking.OrderByDescending(i => ((int)points[i, 0] - points[i, 1])).ToArray();
+			using (StreamWriter writer = new StreamWriter($"./tournament/{leaguentname}/leagueresult.txt", true)) {
+				writer.Write("     ");
+				for(int a = 0; a < playernum; a++) {
+					writer.Write(playerdata[a].name.PadRight(8));
+				}
+				writer.WriteLine();
+				for (int a = 0; a < playernum; a++) {
+					writer.Write(playerdata[a].name.PadRight(4));
+					for (int b = 0; b < playernum; b++) {
+						if (a != b) {
+							writer.Write($" {results[a, b, 0]}-{results[a, b, 1]}-{results[a, b, 2]}-{results[a, b, 3]}");
+						}
+						else {
+							writer.Write(" -------");
+						}
+					}
+					writer.WriteLine();
+				}
+				writer.WriteLine("\n----------");
+				writer.WriteLine("Ranking");
+				for(int i = 0; i < playernum; i++) {
+					int p = ranking[i];
+					writer.WriteLine($"Rank{i+1}:{playerdata[p].name} {points[p, 0]}-{points[p, 1]}-{points[p, 2]}-{points[p, 3]}");
+				}
+			}
+			alive = false;
+		}
 		
 	}
 }

@@ -84,16 +84,23 @@ namespace USI_MultipleMatch
 			}
 		}
 		public static int CountStartPosLines(string filepath) {
+			if (filepath == "none") return 0;
 			int linecount = 0;
-			foreach(var line in File.ReadLines(filepath)) {
-				if (line.StartsWith("startpos")) {
-					linecount++;
+			try {
+				foreach (var line in File.ReadLines(filepath)) {
+					if (line.StartsWith("startpos")) {
+						linecount++;
+					}
+					else {
+						return linecount;
+					}
 				}
-				else {
-					return linecount;
-				}
+				return linecount;
 			}
-			return linecount;
+			catch(Exception e) {
+				Console.WriteLine(e.Message);
+				return 0;
+			}
 		}
 		public static string GetRandomStartPos(string filepath,int maxline) {
 			Random rnd = new Random();
