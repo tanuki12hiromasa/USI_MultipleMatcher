@@ -60,6 +60,7 @@ namespace USI_MultipleMatch
 							options.Add($"{tokens[2]} {tokens[4]} {tokens[6]}");
 							break;
 						case "usiok":
+							engine.StandardInput.WriteLine("quit");
 							Console.WriteLine($"player {name}'s infomation have been aquired.");
 							return;
 					}
@@ -82,6 +83,8 @@ namespace USI_MultipleMatch
 			process.StartInfo.UseShellExecute = false;
 			process.StartInfo.RedirectStandardOutput = true;
 			process.StartInfo.RedirectStandardInput = true;
+			process.StartInfo.RedirectStandardError = true;
+			process.StartInfo.ErrorDialog = false;
 			process.StartInfo.FileName = path;
 			process.StartInfo.WorkingDirectory = System.IO.Path.GetDirectoryName(path);
 			process.Start();
