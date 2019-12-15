@@ -13,102 +13,130 @@ namespace USI_MultipleMatch
 	class Match 
 	{
 		public static Result match(string matchname, uint byoyomi, Player b, Player w, string startusi = "startpos", string kifupath = @"./kifu.txt") {//開始局面のusiはsfen部分から
-			using (Process sente = new Process())
-			using (Process gote = new Process()) {
-				Console.Write($"waiting setup {b.name}...");
-				b.Start(sente);
-				Console.WriteLine(" readyok.");
-				Console.Write($"waiting setup {w.name}...");
-				w.Start(gote);
-				Console.WriteLine(" readyok.");
-				List<string> kifu = new List<string>();
-				List<int> evals = new List<int>();
-				int startmove = 1;
-				List<Kyokumen> history = new List<Kyokumen>();
-				string go = $"go btime 0 wtime 0 byoyomi {byoyomi}";
-				var starttime = DateTime.Now;
-				string startsfen = "startpos";
-				if (startusi != "startpos") {
-					string[] tokens = startusi.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-					if (tokens[0] != "startpos") throw new NotImplementedException();
-					else {
-						history.Add(new Kyokumen());
-						for(int i = 2; i < tokens.Length; i++) {
-							kifu.Add(tokens[i]);
-							history.Add(new Kyokumen(history[history.Count - 1], tokens[i]));
+			while (true) {
+				using (Process sente = new Process())
+				using (Process gote = new Process()) {
+					try {
+						Console.Write($"waiting setup {b.name}...");
+						b.Start(sente);
+						Console.WriteLine(" readyok.");
+						Console.Write($"waiting setup {w.name}...");
+						w.Start(gote);
+						Console.WriteLine(" readyok.");
+						List<string> kifu = new List<string>();
+						List<int> evals = new List<int>();
+						int startmove = 1;
+						List<Kyokumen> history = new List<Kyokumen>();
+						string go = $"go btime 0 wtime 0 byoyomi {byoyomi}";
+						var starttime = DateTime.Now;
+						string startsfen = "startpos";
+						if (startusi != "startpos") {
+							string[] tokens = startusi.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+							if (tokens[0] != "startpos") throw new NotImplementedException();
+							else {
+								history.Add(new Kyokumen());
+								for (int i = 2; i < tokens.Length; i++) {
+									kifu.Add(tokens[i]);
+									history.Add(new Kyokumen(history[history.Count - 1], tokens[i]));
+								}
+								startmove = history.Count;
+							}
 						}
-						startmove = history.Count;
+						else {
+							history.Add(new Kyokumen());
+						}
+						Console.WriteLine($"start at {startusi}");
+						Console.Write($"{starttime.ToString(Kifu.TimeFormat)} {matchname}:");
+						while (true) {
+							if (kifu.Count % 2 == 0) {//先手
+								var (move, eval) = GetMove(sente, position(startsfen, kifu), go);
+								kifu.Add(move);
+								evals.Add(eval);
+								Console.Write($" b:{move}({eval})");
+								if (move == "resign") {
+									Result result = Result.GoteWin;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								else if (move == "win") {
+									Result result = Result.SenteWin;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
+								if (CheckRepetition(nextKyokumen, history)) {
+									Result result = Result.Repetition;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								if (CheckEndless(history.Count)) {
+									Result result = Result.Draw;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								history.Add(nextKyokumen);
+							}
+							else {//後手
+								var (move, eval) = GetMove(gote, position(startsfen, kifu), go);
+								kifu.Add(move);
+								evals.Add(-eval);
+								Console.Write($" w:{move}({-eval})");
+								if (move == "resign") {
+									Result result = Result.SenteWin;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								else if (move == "win") {
+									Result result = Result.GoteWin;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
+								if (CheckRepetition(nextKyokumen, history)) {
+									Result result = Result.Repetition;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								if (CheckEndless(history.Count)) {
+									Result result = Result.Draw;
+									Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
+									sendGameOver(sente, gote, result);
+									return result;
+								}
+								history.Add(nextKyokumen);
+							}
+						}
 					}
-				}
-				else {
-					history.Add(new Kyokumen());
-				}
-				Console.WriteLine($"start at {startusi}");
-				Console.Write($"{starttime.ToString(Kifu.TimeFormat)} {matchname}:");
-				while (true) {
-					if (kifu.Count % 2 == 0) {//先手
-						var (move, eval) = GetMove(sente, position(startsfen, kifu), go);
-						kifu.Add(move);
-						evals.Add(eval);
-						Console.Write($" b:{move}({eval})");
-						if (move == "resign") {
-							Result result = Result.GoteWin;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
-						}
-						else if(move == "win") {
-							Result result = Result.SenteWin;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
-						}
-						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
-						if (CheckRepetition(nextKyokumen, history)) {
-							Result result = Result.Repetition;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
-						}
-						if (CheckEndless(history.Count)) {
-							Result result = Result.Draw;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
-						}
-						history.Add(nextKyokumen);
+					catch (IOException e) {
+						Console.WriteLine(e);
+						if(!sente.HasExited) sente.StandardInput.WriteLine("quit");
+						if(!gote.HasExited) gote.StandardInput.WriteLine("quit");
 					}
-					else {//後手
-						var (move, eval) = GetMove(gote, position(startsfen, kifu), go);
-						kifu.Add(move);
-						evals.Add(-eval);
-						Console.Write($" w:{move}({-eval})");
-						if (move == "resign") {
-							Result result = Result.SenteWin;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
+					finally {
+						if (!sente.WaitForExit(100)) {
+							try {
+								sente.Kill();
+							}
+							catch (Exception)				
+							{
+								//プロセスは既に終了しているので何もしない（waitが終わってkillを呼ぶまでの一瞬の間にプロセスが終了した場合に例外が発生する）
+							}
 						}
-						else if (move == "win") {
-							Result result = Result.GoteWin;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
+						if (!gote.WaitForExit(100)) {
+							try {
+								gote.Kill();
+							}
+							catch (Exception) {
+								//プロセスは既に終了しているので何もしない
+							}
 						}
-						var nextKyokumen = new Kyokumen(history[history.Count - 1], move);
-						if (CheckRepetition(nextKyokumen, history)) {
-							Result result = Result.Repetition;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
-						}
-						if (CheckEndless(history.Count)) {
-							Result result = Result.Draw;
-							Kifu.FoutKifu(starttime, matchname, b, w, byoyomi, kifu, startmove, evals, result, kifupath);
-							sendGameOver(sente, gote, result);
-							return result;
-						}
-						history.Add(nextKyokumen);
 					}
 				}
 			}

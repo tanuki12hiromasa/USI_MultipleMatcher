@@ -160,31 +160,25 @@ namespace USI_MultipleMatch
 				string starttime = DateTime.Now.ToString(Kifu.TimeFormat);
 				for (uint r = 1; r <= m.rounds; r++) {
 					string startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
-					try {
-						if (r % 2 != 0) {
-							//a先手
-							var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
-							switch (result) {
-								case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-								case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
-							}
-						}
-						else {
-							//b先手
-							var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
-							switch (result) {
-								case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-								case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-								case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
-								case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
-							}
+					if (r % 2 != 0) {
+						//a先手
+						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+						switch (result) {
+							case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+							case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+							case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+							case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
 						}
 					}
-					catch (Exception e) {
-						Console.WriteLine(e.Message);
-						r--;
+					else {
+						//b先手
+						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+						switch (result) {
+							case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+							case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+							case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
+							case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
+						}
 					}
 				}
 				string matchResult = $"{starttime} {matchname} {m.byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({playera.enginename} vs {playerb.enginename})";
@@ -318,29 +312,23 @@ namespace USI_MultipleMatch
 			int startposlines = Kifu.CountStartPosLines(startposfile);
 			for (int game=1; ; game++) {
 				string startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
-				try {
-					if (game % 2 == 1) {
-						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, a, b, startpos, $"./tournament/{tname}/kifu.txt");
-						switch (result) {
-							case Result.SenteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
-							case Result.GoteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
-							case Result.Repetition: Console.WriteLine(" Repetition Draw"); break;
-							case Result.Draw: Console.WriteLine(" Draw"); break;
-						}
-					}
-					else {
-						var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, b, a, startpos, $"./tournament/{tname}/kifu.txt");
-						switch (result) {
-							case Result.SenteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
-							case Result.GoteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
-							case Result.Repetition: Console.WriteLine(" Repetition Draw"); break;
-							case Result.Draw: Console.WriteLine(" Draw"); break;
-						}
+				if (game % 2 == 1) {
+					var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, a, b, startpos, $"./tournament/{tname}/kifu.txt");
+					switch (result) {
+						case Result.SenteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
+						case Result.GoteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
+						case Result.Repetition: Console.WriteLine(" Repetition Draw"); break;
+						case Result.Draw: Console.WriteLine(" Draw"); break;
 					}
 				}
-				catch(Exception e) {
-					Console.WriteLine(e.Message);
-					game--;
+				else {
+					var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, b, a, startpos, $"./tournament/{tname}/kifu.txt");
+					switch (result) {
+						case Result.SenteWin: win_b++; Console.WriteLine($" {b.name} win"); break;
+						case Result.GoteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
+						case Result.Repetition: Console.WriteLine(" Repetition Draw"); break;
+						case Result.Draw: Console.WriteLine(" Draw"); break;
+					}
 				}
 				if(win_a > matchnum / 2) {
 					return true;
@@ -385,49 +373,41 @@ namespace USI_MultipleMatch
 			//総当たり戦を行う
 			for(int a = 0; a < playernum; a++) {
 				for(int b = a + 1; b < playernum; b++) {
-					for(int t = 1; t <= matchnum; t++) {
+					for (int t = 1; t <= matchnum; t++) {
 						string startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
-						Result result;
-						try {
-							if (t % 2 == 1) {
-								result = Match.match($"{leaguentname}-{t}", byoyomi, playerdata[a], playerdata[b], startpos, $"./tournament/{leaguentname}/kifu.txt");
-								switch (result) {
-									case Result.SenteWin: 
-										points[a, 0]++; points[b, 1]++; results[a, b, 0]++; results[b, a, 1]++;
-										Console.WriteLine($" {playerdata[a].name} win");break;
-									case Result.GoteWin: 
-										points[a, 1]++; points[b, 0]++; results[a, b, 1]++; results[b, a, 0]++;
-										Console.WriteLine($" {playerdata[b].name} win");break;
-									case Result.Repetition:
-										points[a, 2]++; points[b, 2]++; results[a, b, 2]++; results[b, a, 2]++; 
-										Console.WriteLine(" Repetition Draw"); break;
-									case Result.Draw:
-										points[a, 3]++; points[b, 3]++; results[a, b, 3]++; results[b, a, 3]++; 
-										Console.WriteLine(" Draw"); break;
-								}
-							}
-							else {
-								result = Match.match($"{leaguentname}-{t}", byoyomi, playerdata[b], playerdata[a], startpos, $"./tournament/{leaguentname}/kifu.txt");
-								switch (result) {
-									case Result.SenteWin: 
-										points[b, 0]++; points[a, 1]++; results[b, a, 0]++; results[a, b, 1]++;
-										Console.WriteLine($" {playerdata[b].name} win");break;
-									case Result.GoteWin:
-										points[b, 1]++; points[a, 0]++; results[b, a, 1]++; results[a, b, 0]++;
-										Console.WriteLine($" {playerdata[a].name} win");break;
-									case Result.Repetition:
-										points[a, 2]++; points[b, 2]++; results[a, b, 2]++; results[b, a, 2]++; 
-										Console.WriteLine(" Repetition Draw"); break;
-									case Result.Draw:
-										points[a, 3]++; points[b, 3]++; results[a, b, 3]++; results[b, a, 3]++; 
-										Console.WriteLine(" Draw"); break;
-								}
+						if (t % 2 == 1) {
+							var result = Match.match($"{leaguentname}-{t}", byoyomi, playerdata[a], playerdata[b], startpos, $"./tournament/{leaguentname}/kifu.txt");
+							switch (result) {
+								case Result.SenteWin:
+									points[a, 0]++; points[b, 1]++; results[a, b, 0]++; results[b, a, 1]++;
+									Console.WriteLine($" {playerdata[a].name} win"); break;
+								case Result.GoteWin:
+									points[a, 1]++; points[b, 0]++; results[a, b, 1]++; results[b, a, 0]++;
+									Console.WriteLine($" {playerdata[b].name} win"); break;
+								case Result.Repetition:
+									points[a, 2]++; points[b, 2]++; results[a, b, 2]++; results[b, a, 2]++;
+									Console.WriteLine(" Repetition Draw"); break;
+								case Result.Draw:
+									points[a, 3]++; points[b, 3]++; results[a, b, 3]++; results[b, a, 3]++;
+									Console.WriteLine(" Draw"); break;
 							}
 						}
-						catch (Exception e) {
-							Console.WriteLine(e.Message);
-							t--;
-							continue;
+						else {
+							var result = Match.match($"{leaguentname}-{t}", byoyomi, playerdata[b], playerdata[a], startpos, $"./tournament/{leaguentname}/kifu.txt");
+							switch (result) {
+								case Result.SenteWin:
+									points[b, 0]++; points[a, 1]++; results[b, a, 0]++; results[a, b, 1]++;
+									Console.WriteLine($" {playerdata[b].name} win"); break;
+								case Result.GoteWin:
+									points[b, 1]++; points[a, 0]++; results[b, a, 1]++; results[a, b, 0]++;
+									Console.WriteLine($" {playerdata[a].name} win"); break;
+								case Result.Repetition:
+									points[a, 2]++; points[b, 2]++; results[a, b, 2]++; results[b, a, 2]++;
+									Console.WriteLine(" Repetition Draw"); break;
+								case Result.Draw:
+									points[a, 3]++; points[b, 3]++; results[a, b, 3]++; results[b, a, 3]++;
+									Console.WriteLine(" Draw"); break;
+							}
 						}
 					}
 				}
