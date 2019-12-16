@@ -173,7 +173,7 @@ namespace USI_MultipleMatch
 					}
 					else {
 						//b先手
-						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+						var result = Match.match($"{matchname}-{r}", m.byoyomi, playerb, playera, startpos);
 						switch (result) {
 							case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
 							case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
