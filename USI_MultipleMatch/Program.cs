@@ -158,10 +158,11 @@ namespace USI_MultipleMatch
 			foreach (var m in matchlist) {
 				uint[] results = new uint[4] { 0, 0, 0, 0 };
 				string starttime = DateTime.Now.ToString(Kifu.TimeFormat);
+				string startpos = "startpos";
 				for (uint r = 1; r <= m.rounds; r++) {
-					string startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
 					if (r % 2 != 0) {
 						//a先手
+						startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
 						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
 						switch (result) {
 							case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
@@ -310,9 +311,10 @@ namespace USI_MultipleMatch
 		static bool tournamentVs(string tname,uint rank,uint byoyomi,uint matchnum,Player a,Player b,string startposfile) {
 			uint win_a = 0, win_b = 0;
 			int startposlines = Kifu.CountStartPosLines(startposfile);
+			string startpos = "startpos";
 			for (int game=1; ; game++) {
-				string startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
 				if (game % 2 == 1) {
+					startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
 					var result = Match.match($"{tname}-Round{rank}-{game}", byoyomi, a, b, startpos, $"./tournament/{tname}/kifu.txt");
 					switch (result) {
 						case Result.SenteWin: win_a++; Console.WriteLine($" {a.name} win"); break;
@@ -373,9 +375,10 @@ namespace USI_MultipleMatch
 			//総当たり戦を行う
 			for(int a = 0; a < playernum; a++) {
 				for(int b = a + 1; b < playernum; b++) {
+					string startpos = "startpos";
 					for (int t = 1; t <= matchnum; t++) {
-						string startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
 						if (t % 2 == 1) {
+							startpos = Kifu.GetRandomStartPos(startposfile, startposlines);
 							var result = Match.match($"{leaguentname}-{t}", byoyomi, playerdata[a], playerdata[b], startpos, $"./tournament/{leaguentname}/kifu.txt");
 							switch (result) {
 								case Result.SenteWin:
@@ -417,13 +420,13 @@ namespace USI_MultipleMatch
 			for (int i = 0; i < playernum; i++) ranking[i] = i;
 			ranking = ranking.OrderByDescending(i => ((int)points[i, 0] - points[i, 1])).ToArray();
 			using (StreamWriter writer = new StreamWriter($"./tournament/{leaguentname}/leagueresult.txt", true)) {
-				writer.Write("     ");
+				writer.Write("       ");
 				for(int a = 0; a < playernum; a++) {
 					writer.Write(playerdata[a].name.PadRight(8));
 				}
 				writer.WriteLine();
 				for (int a = 0; a < playernum; a++) {
-					writer.Write(playerdata[a].name.PadRight(4));
+					writer.Write(playerdata[a].name.PadRight(6));
 					for (int b = 0; b < playernum; b++) {
 						if (a != b) {
 							writer.Write($" {results[a, b, 0]}-{results[a, b, 1]}-{results[a, b, 2]}-{results[a, b, 3]}");
