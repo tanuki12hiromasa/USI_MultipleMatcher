@@ -165,8 +165,8 @@ namespace USI_MultipleMatch
 						startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
 						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
 						switch (result) {
-							case Result.SenteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
-							case Result.GoteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
+							case Result.SenteWin: results[0]++; Console.WriteLine($" {playera.name} win"); break;
+							case Result.GoteWin: results[1]++; Console.WriteLine($" {playerb.name} win"); break;
 							case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
 							case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
 						}
@@ -175,8 +175,8 @@ namespace USI_MultipleMatch
 						//b先手
 						var result = Match.match($"{matchname}-{r}", m.byoyomi, playerb, playera, startpos);
 						switch (result) {
-							case Result.SenteWin: results[1]++; Console.WriteLine(" PlayerB win"); break;
-							case Result.GoteWin: results[0]++; Console.WriteLine(" PlayerA win"); break;
+							case Result.SenteWin: results[1]++; Console.WriteLine($" {playerb.name} win"); break;
+							case Result.GoteWin: results[0]++; Console.WriteLine($" {playera.name} win"); break;
 							case Result.Repetition: results[2]++; Console.WriteLine(" Repetition Draw"); break;
 							case Result.Draw: results[3]++; Console.WriteLine(" Draw"); break;
 						}
