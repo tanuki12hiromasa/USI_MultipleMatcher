@@ -506,8 +506,8 @@ namespace USI_MultipleMatch
 						}
 					}
 				}
-				string matchResult = $"{starttime} {leaguename} {byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({playerdata[0].enginename} vs {playerdata[b].enginename})";
-				using (var resultwriter = new StreamWriter($"./tournament/{leaguename}/result.txt", true)) {
+				string matchResult = $"{starttime} {leaguename} {byoyomi}ms: {results[0]}-{results[1]}-{results[2]}-{results[3]} ({playerdata[0].name} vs {playerdata[b].name})";
+				using (var resultwriter = new StreamWriter($"./tournament/{leaguename}/cresult.txt", true)) {
 					resultwriter.WriteLine(matchResult);
 				}
 				Console.WriteLine(matchResult);
