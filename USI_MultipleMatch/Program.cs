@@ -417,6 +417,26 @@ namespace USI_MultipleMatch
 							}
 						}
 					}
+					//組み合わせが終わる度に途中経過をresultに表示する(中断してしまった際に参考にできる)
+					using (StreamWriter writer = new StreamWriter($"./tournament/{leaguename}/leagueresult.txt", true)) {
+						writer.Write("       ");
+						for (int ra = 0; ra < playernum; ra++) {
+							writer.Write(playerdata[ra].name.PadRight(8));
+						}
+						writer.WriteLine();
+						for (int ra = 0; ra < playernum; ra++) {
+							writer.Write(playerdata[ra].name.PadRight(6));
+							for (int rb = 0; rb < playernum; rb++) {
+								if (ra != rb) {
+									writer.Write($" {results[ra, rb, 0]}-{results[ra, rb, 1]}-{results[ra, rb, 2]}-{results[ra, rb, 3]}");
+								}
+								else {
+									writer.Write(" -------");
+								}
+							}
+							writer.WriteLine();
+						}
+					}
 				}
 			}
 			//順位をまとめる
