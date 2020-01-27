@@ -376,9 +376,45 @@ namespace USI_MultipleMatch
 					}
 				}
 			}
+			bool inProgress = false;
+			int astart = 0, bstart = 0;
+			if (File.Exists($"./tournament/{leaguename}/leagueresult.txt")) {
+				Console.WriteLine("league restart");
+				using (var reader = new StreamReader($"./tournament/{leaguename}/leagueresult.txt")) {
+					if(reader.ReadLine() == "in progress") {
+						inProgress = true;
+						string[] ab = reader.ReadLine().Split(',',StringSplitOptions.RemoveEmptyEntries);
+						astart = int.Parse(ab[0]);
+						bstart = int.Parse(ab[1]) + 1;
+						if (bstart == playernum) {
+							astart++;
+							bstart = astart + 1;
+						}						
+						for(int i = 0; i < playernum; i++) {
+							string[] scores = reader.ReadLine().Split(',', StringSplitOptions.RemoveEmptyEntries);
+							string[] point = scores[0].Split('-', StringSplitOptions.RemoveEmptyEntries);
+							for (int n = 0; n < 4; n++) {
+								points[i, n] = uint.Parse(point[n]);
+							}
+							for (int j = 0; j < playernum; j++) {
+								if (i != j) {
+									string[] score = scores[j + 1].Split('-', StringSplitOptions.RemoveEmptyEntries);
+									for(int n = 0; n < 4; n++) {
+										results[i, j, n] = uint.Parse(score[n]);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			//総当たり戦を行う
-			for(int a = 0; a < playernum; a++) {
+			for(int a = astart; a < playernum; a++) {
 				for(int b = a + 1; b < playernum; b++) {
+					if (inProgress) {
+						b = bstart;
+						inProgress = false;
+					}
 					string startpos = "startpos";
 					for (int t = 1; t <= matchnum; t++) {
 						if (t % 2 == 1) {
@@ -418,20 +454,17 @@ namespace USI_MultipleMatch
 						}
 					}
 					//組み合わせが終わる度に途中経過をresultに表示する(中断してしまった際に参考にできる)
-					using (StreamWriter writer = new StreamWriter($"./tournament/{leaguename}/leagueresult.txt", true)) {
-						writer.Write("       ");
+					using (StreamWriter writer = new StreamWriter($"./tournament/{leaguename}/leagueresult.txt", false)) {
+						writer.WriteLine("in progress");
+						writer.WriteLine($"{a},{b}");
 						for (int ra = 0; ra < playernum; ra++) {
-							writer.Write(playerdata[ra].name.PadRight(8));
-						}
-						writer.WriteLine();
-						for (int ra = 0; ra < playernum; ra++) {
-							writer.Write(playerdata[ra].name.PadRight(6));
+							writer.Write($"{points[ra,0]}-{points[ra, 1]}-{points[ra, 2]}-{points[ra, 3]}");
 							for (int rb = 0; rb < playernum; rb++) {
 								if (ra != rb) {
-									writer.Write($" {results[ra, rb, 0]}-{results[ra, rb, 1]}-{results[ra, rb, 2]}-{results[ra, rb, 3]}");
+									writer.Write($",{results[ra, rb, 0]}-{results[ra, rb, 1]}-{results[ra, rb, 2]}-{results[ra, rb, 3]}");
 								}
 								else {
-									writer.Write(" -------");
+									writer.Write(",-------");
 								}
 							}
 							writer.WriteLine();
@@ -443,7 +476,7 @@ namespace USI_MultipleMatch
 			int[] ranking = new int[playernum];
 			for (int i = 0; i < playernum; i++) ranking[i] = i;
 			ranking = ranking.OrderByDescending(i => ((int)points[i, 0] - points[i, 1])).ToArray();
-			using (StreamWriter writer = new StreamWriter($"./tournament/{leaguename}/leagueresult.txt", true)) {
+			using (StreamWriter writer = new StreamWriter($"./tournament/{leaguename}/leagueresult.txt", false)) {
 				writer.Write("       ");
 				for(int a = 0; a < playernum; a++) {
 					writer.Write(playerdata[a].name.PadRight(8));
