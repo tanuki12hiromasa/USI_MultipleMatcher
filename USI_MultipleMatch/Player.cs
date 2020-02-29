@@ -93,6 +93,7 @@ namespace USI_MultipleMatch
 			foreach (string usi in options) process.StandardInput.WriteLine(setoptionusi(usi));
 			process.StandardInput.WriteLine("isready");
 			while (true) { if (process.StandardOutput.ReadLine() == "readyok") break; }
+			process.StandardInput.WriteLine("usinewgame");
 		}
 
 		static string setoptionusi(string settingline) {
