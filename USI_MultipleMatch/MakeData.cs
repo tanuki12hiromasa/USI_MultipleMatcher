@@ -28,7 +28,7 @@ namespace USI_MultipleMatch
 			string sfenpath = Console.ReadLine();
 			Console.Write("output filepath? > ");
 			string outputpath = Console.ReadLine();
-			Console.Write("search time?(ms) > ");
+			Console.Write("search time?(second) > ");
 			uint byo = uint.Parse(Console.ReadLine());
 			using var sfenfs = new StreamReader(sfenpath);
 			//playerAを読み込む
