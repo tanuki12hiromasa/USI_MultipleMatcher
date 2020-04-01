@@ -109,5 +109,39 @@ namespace USI_MultipleMatch
 			else
 				return "startpos";
 		}
+
+		public static void KifutxtToSfen() {
+			//使用するkifu.txtのpathを入力
+			Console.Write("kifu.txt filepath? > ");
+			string kifufilepath = Console.ReadLine();
+			//kifu.txtから取得する行数を入力
+			Console.Write("Where line start from? > ");
+			int linenum = int.Parse(Console.ReadLine());
+			//出力されるsfenファイルの名前を入力
+			Console.Write("sfen output filename? > ");
+			string sfenfilename = Console.ReadLine().Split(new char[] { ' ', '.' }, StringSplitOptions.RemoveEmptyEntries)[0] + ".sfen";
+			using (var kifufs = new StreamReader(kifufilepath))
+			using (var sfenfs = new StreamWriter(sfenfilename, true)) {
+				if (linenum % 2 == 0) linenum++;
+				for(int i = 1; i < linenum; i++) {
+					kifufs.ReadLine();
+				}
+				var random = new Random();
+				while (!kifufs.EndOfStream) {
+					string kifuline = kifufs.ReadLine();
+					string evalline = kifufs.ReadLine();
+					var kifu = kifuline.Split(':')[2].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+					int.TryParse(evalline.Split(' ')[1].Split('=')[1], out int starttekazu);
+					int usepos = random.Next(starttekazu, kifu.Length);
+					if (usepos <= 0) continue;
+					sfenfs.Write("startpos moves");
+					for(int i = 0; i < usepos; i++) {
+						sfenfs.Write(" " + kifu[i]);
+					}
+					sfenfs.Write('\n');
+				}
+			}
+			Console.WriteLine("sfen out finished.");
+		}
 	}
 }

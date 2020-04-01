@@ -14,7 +14,7 @@ namespace USI_MultipleMatch
 			alive = true;
 			Console.WriteLine("連続対局プログラム");
 			while (alive) {
-				Console.Write("command?(r/s/tm/ts/ls/c/k/q) > ");
+				Console.Write("command?(r/s/tm/ts/ls/c/md/k/ks/q) > ");
 				switch (Console.ReadLine()) {
 					case "register":
 					case "r":
@@ -40,9 +40,17 @@ namespace USI_MultipleMatch
 					case "c":
 						consecutive();
 						break;
+					case "makedata":
+					case "md":
+						MakeData.makedata();
+						break;
 					case "kifutocsa":
 					case "k":
 						Kifu.KifulineToCSA();
+						break;
+					case "kifutosfen":
+					case "ks":
+						Kifu.KifutxtToSfen();
 						break;
 					case "quit":
 					case "q":
@@ -52,6 +60,7 @@ namespace USI_MultipleMatch
 			}
 			Console.WriteLine("Program finished.");
 		}
+
 		static void register() {
 			string p = " ";
 			while (p != "a" && p != "A" && p != "b" && p != "B") {
@@ -199,10 +208,12 @@ namespace USI_MultipleMatch
 			Console.Write("tournament name? > ");
 			string tournamentname = Console.ReadLine();
 			Directory.CreateDirectory($"tournament/{tournamentname}");
-			Console.Write("byoyomi? > ");
-			uint byoyomi = uint.Parse(Console.ReadLine());
+			Console.Write("number of players? > ");
+			uint playernum = uint.Parse(Console.ReadLine());
 			Console.Write("How many matches per 1 round? > ");
 			uint matchnum = uint.Parse(Console.ReadLine());
+			Console.Write("byoyomi? > ");
+			uint byoyomi = uint.Parse(Console.ReadLine());
 			string randomposfilepath = null;
 			while (randomposfilepath == null) {
 				Console.Write("use random startpos?(y/n) > ");
@@ -218,8 +229,6 @@ namespace USI_MultipleMatch
 					randomposfilepath = "none";
 				}
 			}
-			Console.Write("number of players? > ");
-			uint playernum = uint.Parse(Console.ReadLine());
 			using (StreamWriter writer = new StreamWriter(@$"./tournament/{tournamentname}/tsetting.txt")) {
 				writer.WriteLine($"byoyomi {byoyomi}");
 				writer.WriteLine($"matchnum {matchnum}");
