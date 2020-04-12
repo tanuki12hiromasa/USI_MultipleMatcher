@@ -132,7 +132,9 @@ namespace USI_MultipleMatch
 					string evalline = kifufs.ReadLine();
 					var kifu = kifuline.Split(':')[2].Split(' ', StringSplitOptions.RemoveEmptyEntries);
 					int.TryParse(evalline.Split(' ')[1].Split('=')[1], out int starttekazu);
-					int usepos = random.Next(starttekazu, kifu.Length);
+					int maxtekazu = kifu.Length - 10;
+					if (maxtekazu < starttekazu) continue;
+					int usepos = random.Next(starttekazu, maxtekazu);
 					if (usepos <= 0) continue;
 					sfenfs.Write("startpos moves");
 					for(int i = 0; i < usepos; i++) {
