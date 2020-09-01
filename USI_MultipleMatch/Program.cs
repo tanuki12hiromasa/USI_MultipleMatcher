@@ -14,7 +14,7 @@ namespace USI_MultipleMatch
 			alive = true;
 			Console.WriteLine("連続対局プログラム");
 			while (alive) {
-				Console.Write("command?(r/s/tm/ts/ls/c/md/k/ks/q) > ");
+				Console.Write("command?(r/s/tm/ts/ls/c/k/ks/q) > ");
 				switch (Console.ReadLine()) {
 					case "register":
 					case "r":
@@ -39,10 +39,6 @@ namespace USI_MultipleMatch
 					case "consecutivegame":
 					case "c":
 						consecutive();
-						break;
-					case "makedata":
-					case "md":
-						MakeData.makedata();
 						break;
 					case "kifutocsa":
 					case "k":
@@ -176,7 +172,7 @@ namespace USI_MultipleMatch
 					if (r % 2 != 0) {
 						//a先手
 						startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
-						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos);
+						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos, $"./playerlog/{matchname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: results[0]++; Console.WriteLine($" {playera.name} win"); break;
 							case Result.GoteWin: results[1]++; Console.WriteLine($" {playerb.name} win"); break;
@@ -186,7 +182,7 @@ namespace USI_MultipleMatch
 					}
 					else {
 						//b先手
-						var result = Match.match($"{matchname}-{r}", m.byoyomi, playerb, playera, startpos);
+						var result = Match.match($"{matchname}-{r}", m.byoyomi, playerb, playera, startpos, $"./playerlog/{matchname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: results[1]++; Console.WriteLine($" {playerb.name} win"); break;
 							case Result.GoteWin: results[0]++; Console.WriteLine($" {playera.name} win"); break;
