@@ -24,6 +24,11 @@ namespace USI_MultipleMatch
 				foreach (var eval in evals) kifuwriter.Write(eval + " ");
 				kifuwriter.WriteLine();
 			}
+			using (var kifuwriter = new StreamWriter($"{System.IO.Path.GetDirectoryName(kifupath)}/{System.IO.Path.GetFileNameWithoutExtension(kifupath)}.sfen", true)) {
+				kifuwriter.Write("startpos moves ");
+				foreach (var move in kifu) kifuwriter.Write(move + " ");
+				kifuwriter.WriteLine();
+			}
 		}
 		public static void KifulineToCSA() {
 			Console.WriteLine("input kifu line by kifu.txt");
