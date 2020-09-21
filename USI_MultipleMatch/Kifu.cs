@@ -107,12 +107,13 @@ namespace USI_MultipleMatch
 				return 0;
 			}
 		}
-		public static string GetRandomStartPos(string filepath,int maxline) {
-			Random rnd = new Random();
-			if (maxline > 0)
-				return File.ReadLines(filepath).Skip(rnd.Next(maxline)).First();
-			else
+		public static string GetRandomStartPos(string filepath,int maxline,int line=-1) {
+			if (maxline <= 0 || filepath=="none")
 				return "startpos";
+			if (line >= 0)
+				return File.ReadLines(filepath).Skip(line).First();
+			Random rnd = new Random();
+			return File.ReadLines(filepath).Skip(rnd.Next(maxline)).First();
 		}
 
 		public static void KifutxtToSfen() {

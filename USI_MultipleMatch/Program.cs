@@ -126,10 +126,13 @@ namespace USI_MultipleMatch
 				}
 			}
 			int randomposlines = 0;
+			bool startposrandomly = true;
 			string randomposfilepath = null;
 			while (randomposfilepath == null) {
-				Console.Write("use random startpos?(y/n) > ");
+				Console.Write("use startpos file?(y/n) > ");
 				if (Console.ReadLine() == "y") {
+					Console.Write("use random startpos?(y/n) > ");
+					startposrandomly = (Console.ReadLine() != "n");
 					Console.Write("startpos file path? > ");
 					randomposfilepath = Console.ReadLine();
 					randomposlines = Kifu.CountStartPosLines(randomposfilepath);
@@ -171,7 +174,8 @@ namespace USI_MultipleMatch
 				for (uint r = 1; r <= m.rounds; r++) {
 					if (r % 2 != 0) {
 						//a先手
-						startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines);
+						int spline = startposrandomly ? -1 : ((int)r / 2) % randomposlines;
+						startpos = Kifu.GetRandomStartPos(randomposfilepath, randomposlines, spline);
 						var result = Match.match($"{matchname}-{r}", m.byoyomi, playera, playerb, startpos, $"./playerlog/{matchname}/kifu.txt");
 						switch (result) {
 							case Result.SenteWin: results[0]++; Console.WriteLine($" {playera.name} win"); break;
