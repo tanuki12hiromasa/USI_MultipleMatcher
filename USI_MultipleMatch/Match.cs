@@ -114,7 +114,7 @@ namespace USI_MultipleMatch
 							}
 						}
 					}
-					catch (IOException e) {
+					catch (Exception e) {
 						Console.WriteLine(e);
 						if(!sente.HasExited) sente.StandardInput.WriteLine("quit");
 						if(!gote.HasExited) gote.StandardInput.WriteLine("quit");
